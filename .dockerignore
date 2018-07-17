@@ -1,0 +1,4 @@
+.webpack
+dist
+etc/*
+logs/*

@@ -1,0 +1,196 @@
+service: ${file(./serverless_config.js):getEnvVars.service}
+
+frameworkVersion: ">=1.21.0 <2.0.0"
+
+provider:
+  name: aws
+  stage: dev
+  runtime: nodejs8.10
+  region: ${file(./serverless_config.js):getEnvVars.provider.region}
+  cfLogs: true
+
+  environment:
+    NODE_ENV: ${file(./serverless_config.js):getEnvVars.environment.NODE_ENV}
+    JWT_SECRET: ${file(./serverless_config.js):getEnvVars.environment.JWT_SECRET}
+    COOKIE_NAME: ${file(./serverless_config.js):getEnvVars.environment.COOKIE_NAME}
+    COOKIE_DOMAIN: ${file(./serverless_config.js):getEnvVars.environment.COOKIE_DOMAIN}
+    EMAIL_FROM: ${file(./serverless_config.js):getEnvVars.environment.EMAIL_FROM}
+    URI_FRONTEND: ${file(./serverless_config.js):getEnvVars.environment.URI_FRONTEND}
+    UNSUBSCRIBE_URI_FRONTEND: ${file(./serverless_config.js):getEnvVars.environment.UNSUBSCRIBE_URI_FRONTEND}
+    USE_DYNAMO_REMOTE: ${file(./serverless_config.js):getEnvVars.environment.USE_DYNAMO_REMOTE}
+    USE_AMAZON_SERVERLESS: ${file(./serverless_config.js):getEnvVars.environment.USE_AMAZON_SERVERLESS}
+    AWS_SERVERLESS_SERVICE: ${file(./serverless_config.js):getEnvVars.environment.AWS_SERVERLESS_SERVICE}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:CreateTable
+      Resource: ${file(./serverless_config.js):getEnvVars.provider.iamRoleStatements.resourceDynamo}
+
+    - Effect: Allow
+      Action:
+        - ses:SendRawEmail
+      Resource: ${file(./serverless_config.js):getEnvVars.provider.iamRoleStatements.resourceSes}
+
+    - Effect: Allow
+      Action:
+        - logs:CreateLogStream
+        - logs:DescribeLogGroups
+        - logs:DescribeLogStreams
+        - logs:GetLogEvents
+        - logs:PutLogEvents
+        - logs:FilterLogEvents
+      Resource: ${file(./serverless_config.js):getEnvVars.provider.iamRoleStatements.resourceLogs}
+
+plugins:
+  - serverless-offline
+  - serverless-webpack
+  - serverless-appsync-plugin
+  - serverless-plugin-metric
+
+custom:
+  newService: ${self:} 
+  metricsNamespace: ${self:custom.newService.service}
+  logGroupsNamespace: /${self:custom.newService.service}
+  logGroupsPixels: ${self:custom.logGroupsNamespace}/pixels
+  logGroupsSessions: ${self:custom.logGroupsNamespace}/sessions
+  serverless-offline:
+    port: 4000
+
+  webpackIncludeModules: true
+
+  accountId: ${file(./serverless_config.js):getEnvVars.accountId}
+
+  appSync:
+
+    name: ${file(./serverless_config.js):getEnvVars.appSync.name}
+    apiId: ${file(./serverless_config.js):getEnvVars.appSync.apiId}
+    apiKey: ${file(./serverless_config.js):getEnvVars.appSync.apiKey}
+    authenticationType: ${file(./serverless_config.js):getEnvVars.appSync.authenticationType}
+
+    userPoolConfig:
+      awsRegion: ${file(./serverless_config.js):getEnvVars.provider.region}
+      defaultAction: ALLOW
+
+    mappingTemplatesLocation: ${file(./serverless_config.js):getEnvVars.appSync.mappingTemplatesLocation}
+    schema: ${file(./serverless_config.js):getEnvVars.appSync.schema}
+
+    serviceRole: "AppSyncServiceRole"
+
+    mappingTemplates:
+      - dataSource: Lambda
+        type: Mutation
+        field: confirm
+        request: "confirm-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: createPixels
+        request: "createPixels-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: createPixelsJob
+        request: "createPixelsJob-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: createToken
+        request: "createToken-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: createUser
+        request: "createUser-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: deleteMe
+        request: "deleteMe-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: me
+        request: "me-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: pixels
+        request: "pixels-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: sessions
+        request: "sessions-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: sendConfirm
+        request: "sendConfirm-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: updateMe
+        request: "updateMe-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: updatePasswordMe
+        request: "updatePasswordMe-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: user
+        request: "user-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: users
+        request: "users-request.txt"
+        response: "default-response.txt"
+
+    dataSources:
+      - type: AWS_LAMBDA
+        name: Lambda
+        description: 'Lambda DataSource'
+        config:
+          lambdaFunctionArn: ${file(./serverless_config.js):getEnvVars.appSync.lambdaFunctionArn}
+          serviceRoleArn: ${file(./serverless_config.js):getEnvVars.appSync.serviceRoleArn}
+
+
+functions:
+  graphql:
+    name: ${file(./serverless_config.js):getEnvVars.lamda.name}
+    handler: 'src/lambda-services/handler.graphqlHandler'
+    package:
+      excludeDevDependencies: true
+    events:
+      - http:
+          path: api/v3
+          method: post
+          cors: true
+
+resources:
+  - ${file(./src/sls-yamls/appsync.roles.yml)}
+  - ${file(./src/sls-yamls/cw.loggroups.yml)}
+  - ${file(./src/sls-yamls/cw.metricfilters.yml)}

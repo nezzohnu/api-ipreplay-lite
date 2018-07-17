@@ -1,0 +1,6 @@
+# Define all log groups
+  Resources:
+    PixelLogs:
+      Type: "AWS::Logs::LogGroup"
+      Properties:
+        LogGroupName: ${self:custom.logGroupsPixels}

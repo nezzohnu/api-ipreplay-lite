@@ -1,0 +1,1521 @@
+openapi: 3.0.0
+
+info:
+  title: api-ipreplay
+  version: v2
+
+servers:
+  - url: http://localhost:8080/api/v2
+    description: local server
+
+paths:
+
+  /users/upfront/register:
+    get:
+      summary: "register an upfront user"
+      description: "
+        1. find user
+
+        2. send email confirmation
+      "
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                acceptPrivacy:
+                  type: boolean
+                acceptExpiration:
+                  type: boolean
+              example:
+                data:
+                  attributes:
+                    email: "test@test.com"
+                    firstName: "John"
+                    lastName: "Doe"
+                    acceptPrivacy: true
+                    acceptExpiration: true
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user'
+
+  /companies/{companyId}/users:
+
+    get:
+      summary: "list users"
+      description: "
+        1. root - return all users
+
+        2. admin - return only users with same namespace
+
+        3. guest - not allowed
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/companyId'
+        - $ref: '#/components/parameters/page_offset'
+        - $ref: '#/components/parameters/page_limit'
+        - $ref: '#/components/parameters/include_recipient'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user'
+
+    post:
+      summary: "after create user, it will send confim email"
+      description: "
+        1. root - create any guest users
+
+        2. admin - create only guest users with same namespace
+
+        3. guest - not allowed
+
+
+        user have recipient (objectId), for use url?include=recipient
+      "
+      parameters:
+        - $ref: '#/components/parameters/companyId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+              example:
+                data:
+                  type: "user"
+                  attributes:
+                    firstName: "firstName"
+                    lastName: "lastName"
+                    email: "user@test.com"
+                    password: "1245"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+  /companies/{companyId}/users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/companyId'
+      - $ref: '#/components/parameters/userId'
+
+    get:
+      summary: "show current user"
+      description: "
+        1. root - return any users
+
+        2. admin - return only guest users with same namespace
+
+        3. guest - not allowed
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: include
+          in: query
+          required: false
+          schema:
+            type: string
+          example: "recipient"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+    put:
+      summary: "update user"
+      description: "
+        1. root - update any users
+
+        2. admin - update only guest users with same namespace
+
+        3. guest - not allowed
+      "
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user'
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        200:
+          description: ""
+
+    delete:
+      summary: "delete user"
+      description: "
+        1. root - delete any users
+
+        2. admin - delete only guest users with same namespace
+
+        3. guest - not allowed
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+  /companies/{companyId}/admins:
+    get:
+      summary: "list admins"
+      description: "
+        1. root - list admins
+
+        2. admin - not allowed
+
+        3. guest - not allowed
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/companyId'
+        - $ref: '#/components/parameters/page_offset'
+        - $ref: '#/components/parameters/page_limit'
+        - $ref: '#/components/parameters/include_recipient'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user'
+
+  /companies/{companyId}/admins/{userId}:
+
+    post:
+      summary: "create admin"
+      description: "
+        root - create admin
+
+        admin - not allowed
+
+        guest - not allowed
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/companyId'
+        - $ref: '#/components/parameters/userId'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+    get:
+      summary: "show admin"
+      description: "
+        1. root - return admin by id
+
+        2. admin - not allowed
+
+        3. guest - not allowed
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/companyId'
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/include_recipient'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+    delete:
+      summary: "delete admin"
+      description: "
+        1. root - delete admin from company
+
+        2. admin - not allowed
+
+        3. guest - not allowed
+      "
+      parameters:
+        - $ref: '#/components/parameters/companyId'
+        - $ref: '#/components/parameters/userId'
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+  /companies:
+    get:
+      summary: "read companies"
+      description: "
+        admin and root may read any company
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page_offset'
+        - $ref: '#/components/parameters/page_limit'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/company'
+
+    post:
+      summary: "create company"
+      description: "
+        1. root can create company
+
+        2. admin can't create company
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/company'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/company'
+
+  /companies/{id}:
+    parameters:
+      - $ref: '#/components/parameters/id'
+
+    get:
+      summary: "read one company"
+      description: "
+        1. root can read any company
+
+        2. admin can read any company
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+    put:
+      summary: "update company"
+      description: "
+        1. root can update any company
+
+        2. admin can't update any company
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/company'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+    delete:
+      summary: "delete company"
+      description: "
+        1. root can delete any company
+
+        2. admin can't delete any company
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+  /campaigns:
+    get:
+      summary: "list campaigns"
+      description: "
+        1. root return any campaign
+
+        2. admin return campaigns belongs user or belongs user.company
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page_offset'
+        - $ref: '#/components/parameters/page_limit'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/campaign'
+
+    post:
+      summary: "create new campaign"
+      description: "
+        1. root create any campaign
+
+        2. admin create campaign belongs company user
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/campaign'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/campaign'
+
+  /campaigns/{id}:
+    get:
+      summary: "read campaign"
+      description: "
+        1. root read any campaign
+
+        2. admin read campaign belongs company user or belongs user
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/campaign'
+    put:
+      summary: "update campaign"
+      description: "
+        1. root update any campaign
+
+        2. admin update campaign belongs company user or belongs user
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/campaign'
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/campaign'
+
+    delete:
+      summary: "delete campaign"
+      description: "
+        1. root delete any campaign
+
+        2. admin delete campaign belongs company user or belongs user
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/campaign'
+
+  /campaigns/analytics:
+    get:
+      summary: "return analytics for all campaigns"
+      description: ""
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/analytics'
+
+  /campaigns/{id}/clone:
+    post:
+      summary: "clone campaign, (active set false)"
+      description: ""
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/campaign'
+
+  /campaigns/{id}/resend:
+    put:
+      summary: "for resend all emails current campaign"
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/campaign'
+
+  /campaigns/{campaignId}/recipients:
+    get:
+      summary: "list recipients"
+      description: "
+        1. root read any recipient
+
+        2. admin read recipients belongs campaign company user or belongs user campaign
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/campaignId'
+        - $ref: '#/components/parameters/page_offset'
+        - $ref: '#/components/parameters/page_limit'
+        - name: filter[email]
+          in: query
+          required: false
+          schema:
+            type: string
+          description: "test@test.com"
+        - name: filter[status]
+          in: query
+          required: false
+          schema:
+            type: string
+          description: "wait, success, failures, bounce, outOfTheOffice, complaint, suppressionList, unsubscribe"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipient'
+
+    post:
+      summary: "create recipients"
+      description: "
+        1. root create any recipient
+
+        2. admin create recipients belongs campaign company user or belongs user campaign
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/campaignId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/recipient'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipient'
+
+  /campaigns/{campaignId}/recipients/{id}:
+    get:
+      summary: "read recipient"
+      description: "
+        1. root read any recipient
+
+        2. admin read recipients belongs campaign company user or belongs user campaign
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/campaignId'
+        - $ref: '#/components/parameters/id'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipient'
+    put:
+      summary: "update recipient"
+      description: "
+        1. root can update any recipient campaign,
+
+        2. admin can update recipient only the owner campaign
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/campaignId'
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/recipient'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipient'
+
+    delete:
+      summary: "update recipient"
+      description: "
+        1. root can delete any recipient campaign
+
+        2. admin can delete recipient only the owner campaign
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/campaignId'
+        - $ref: '#/components/parameters/id'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipient'
+
+  /campaigns/{campaignId}/recipients/{id}/unsubscribe:
+    put:
+      summary: "set status unsubscribe, for admin - any campaign, for manager - only the owner campaign"
+      parameters:
+        - $ref: '#/components/parameters/campaignId'
+        - $ref: '#/components/parameters/id'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipient'
+
+  /events:
+    get:
+      summary: "list events"
+      description: "
+        1. root - return any event,
+
+        2. admin - return with namespace,
+
+        3. guest - not allowed
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page_offset'
+        - $ref: '#/components/parameters/page_limit'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/event'
+
+    post:
+      summary: "create new event"
+      description: "
+        1. root - return create any namespace,
+
+        2. admin - return create only current namespace,
+
+        3. guest - not allowed
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/event'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/event'
+
+  /events/{id}:
+    parameters:
+      - $ref: '#/components/parameters/id'
+
+    get:
+      summary: "show event"
+      description: "
+        1. root - return any event,
+
+        2. admin - return with namespace,
+
+        3. guest - not allowed
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/event'
+
+    put:
+      summary: "update event"
+      description: "
+        1. root - update any event,
+
+        2. admin - update with namespace,
+
+        3. guest - update not allowed
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/event'
+      responses:
+        200:
+          description: ""
+
+    delete:
+      summary: "delete event"
+      description: "
+        1. root - delete any event,
+
+        2. admin - delete with namespace,
+
+        3. guest - delete not allowed
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/event'
+
+  /me:
+    get:
+      summary: "info about current user, by jwt token"
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+    delete:
+      summary: "delete user by password"
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/password'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+    put:
+      summary: "update attributes current user by token, without password, confirmCode, also user may change company by id"
+      description: "
+        1. user may change company
+
+        2. root should remove admin role after
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+              example:
+                data:
+                  type: "user"
+                  id: "5a28e9eb9f042573d0daea21"
+                  attributes:
+                    firstName: "firstName"
+                    lastName: "lastName"
+                    email: "user@test.com"
+                    company: "5a28e9eb9f042573d0daea22"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+  /me/password:
+    post:
+      summary: "update password for user, by token with old password"
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                data:
+                  attributes:
+                    oldPassword: "12345"
+                    newPassword: "newPassword"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+  /auth/confirm:
+    post:
+      summary: "confirm email by code"
+      description: "
+        1. POST /v2/user send confirm email
+
+        2. user to follow link in email in frontend app
+
+        3. user arrive on fronend app with code
+
+        (as example http://test.com/confirm?code=12345678)
+
+        4. frontend app send code here /auth/confirm
+      "
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+              example:
+                data:
+                  attributes:
+                    code: "5a28e9eb9f042573d0daea21"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/message'
+
+  /auth/send_confirm:
+    put:
+      summary: "this need for send confirm email again"
+      description: "
+        1. POST /v2/user send confirm email
+
+        2. you may send email again here
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        200:
+          description: ""
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: ipreplay=jwt; Max-Age=60; Domain=localhost:8081; HttpOnly; Secure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/message'
+
+  /auth/token:
+    put:
+      summary: 'get jwt token or may use set cookies old-api, TODO need set jwt token in cookies http-only'
+      requestBody:
+        $ref: '#/components/requestBodies/token'
+      responses:
+        200:
+          description: ""
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: ipreplay=jwt; Max-Age=60; Domain=localhost:8081; HttpOnly; Secure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/token'
+
+  /amazon/sns_webhook:
+    post:
+      summary: "webhook for change status email for Amazon SNS, need subcribe it in Amazon SNS"
+      description: ""
+      requestBody:
+        $ref: '#/components/requestBodies/sns_webhook'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/message'
+
+  /logs:
+    get:
+      summary: "get all logs"
+      description: "
+        1. root return by root.namespace or params.namespace
+
+        2. admin in company return logs company
+
+        3. user without company return his logs
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page_offset'
+        - $ref: '#/components/parameters/page_limit'
+        - $ref: '#/components/parameters/namespace'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/log'
+  /socket:
+    put:
+      summary: "send event for socket"
+      description: ""
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/socket'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/log'
+
+
+  /pixels:
+    get:
+      summary: "list pixels"
+      description: "
+        1. any root can get any pixels
+
+        2. any admin can get any pixels
+
+        3. any guest can get any pixels
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page_offset'
+        - $ref: '#/components/parameters/page_limit'
+        - name: filter[sessionId]
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: filter[namespace]
+          in: query
+          required: false
+          description: "only root"
+          schema:
+            type: string
+        - name: filter[timestampStart]
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: filter[timestampEnd]
+          in: query
+          required: false
+          schema:
+            type: number
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/pixel'
+
+    post:
+      summary: "create new event"
+      description: "
+        1. root - return create any namespace,
+
+        2. admin - return create only current namespace,
+
+        3. guest - not allowed
+      "
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createPixel'
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/pixel'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: ipreplay  # cookie name
+
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+
+  requestBodies:
+
+    socket:
+      description: ""
+      required: true
+      content:
+        application/json:
+          schema:
+            properties:
+              event:
+                type: string
+              payload:
+                type: object
+            example:
+              data:
+                attributes:
+                  event: "test"
+                  payload: { "payload": "info" }
+
+    token:
+      description: ""
+      required: true
+      content:
+        application/json:
+          schema:
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+            example:
+              data:
+                attributes:
+                  email: "root@test.com"
+                  password: "12345"
+
+    password:
+      description: ""
+      required: true
+      content:
+        application/json:
+          schema:
+            properties:
+              password:
+                type: string
+            example:
+              data:
+                attributes:
+                  password: "12345"
+
+    sns_webhook:
+      description: "example webhook"
+      required: true
+      content:
+        application/json:
+          schema:
+            example:
+              Type: "Notification"
+              MessageId: "cc068ed4-4ecd-59f2-8863-ddea3c94d363"
+              TopicArn: "arn:aws:sns:us-west-2:817618439211:new"
+              Message: "{\"notificationType\":\"Bounce\",\"bounce\":{\"bounceType\":\"Permanent\",\"bounceSubType\":\"Suppressed\",\"bouncedRecipients\":[{\"emailAddress\":\"suppressionlist@simulator.amazonses.com\",\"action\":\"failed\",\"status\":\"5.1.1\",\"diagnosticCode\":\"Amazon SES has suppressed sending to this address because it has a recent history of bouncing as an invalid address. For more information about how to remove an address from the suppression list, see the Amazon SES Developer Guide: http://docs.aws.amazon.com/ses/latest/DeveloperGuide/remove-from-suppressionlist.html \"}],\"timestamp\":\"2018-04-04T06:26:32.993Z\",\"feedbackId\":\"010101628f55e16a-29c807ab-0088-4fd9-afd5-94e9c3d2d51a-000000\",\"reportingMTA\":\"dns; amazonses.com\"},\"mail\":{\"timestamp\":\"2018-04-04T06:26:31.000Z\",\"source\":\"niten2@yandex.ru\",\"sourceArn\":\"arn:aws:ses:us-west-2:817618439211:identity/niten2@yandex.ru\",\"sourceIp\":\"171.33.255.58\",\"sendingAccountId\":\"817618439211\",\"messageId\":\"010101628f55e0d0-8beab33c-7b50-43bb-a12d-f615fb7faf8e-000000\",\"destination\":[\"suppressionlist@simulator.amazonses.com\"],\"headersTruncated\":false,\"headers\":[{\"name\":\"Content-Type\",\"value\":\"text/html\"},{\"name\":\"From\",\"value\":\"niten2@yandex.ru\"},{\"name\":\"To\",\"value\":\"suppressionlist@simulator.amazonses.com\"},{\"name\":\"Subject\",\"value\":\"Amazon SES Template TesT\"},{\"name\":\"Message-ID\",\"value\":\"<affa7a40-2a10-ea6d-98ad-8db8ff40c36d@yandex.ru>\"},{\"name\":\"Content-Transfer-Encoding\",\"value\":\"7bit\"},{\"name\":\"Date\",\"value\":\"Wed, 04 Apr 2018 06:26:31 +0000\"},{\"name\":\"MIME-Version\",\"value\":\"1.0\"}],\"commonHeaders\":{\"from\":[\"niten2@yandex.ru\"],\"date\":\"Wed, 04 Apr 2018 06:26:31 +0000\",\"to\":[\"suppressionlist@simulator.amazonses.com\"],\"messageId\":\"<affa7a40-2a10-ea6d-98ad-8db8ff40c36d@yandex.ru>\",\"subject\":\"Amazon SES Template TesT\"}}}"
+              Timestamp: "2018-04-04T06:26:33.015Z"
+              SignatureVersion: "1"
+              Signature: "idoCd80RjltVU+GME4azr6ELvqqXlKZt41wp/qqPT7Xw0poef72ukGUVxjk0L9ASEjE1HsRFw27gZc9Z5XfwrOVEbsFaO44PdHBbnHCpDJiAfEKc4vYKkJ8OGY3LmUc+J8KAczT5ke7hjQd7xORwLEz4OcSZshXDl93qn33T5uhT9pM5GFRUy/bQ1G81ds3cnXj/yIEA0zk/Lux5XRem0g7YAJ52z7yJf3No6pcrak9ni8LnyJ3EHzgwg1OoK+hsaBaoPJjRjRd+HajWh+DRj9ApVh7KrsuPKJ0KZyO/LBFYrJPg034tNi8DIDIHXP2vmHoTZcb3JpujE4JRKdv8FA=="
+              SigningCertURL: "https://sns.us-west-2.amazonaws.com/SimpleNotificationService-433026a4050d206028891664da859041.pem"
+              UnsubscribeURL: "https://sns.us-west-2.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-west-2:817618439211:new:258d68f2-842d-4d71-9927-d0fba036c5b1"
+
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+
+    campaignId:
+      name: campaignId
+      in: path
+      required: true
+      schema:
+        type: string
+
+    companyId:
+      name: companyId
+      in: path
+      required: true
+      schema:
+        type: string
+
+    userId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+
+    namespace:
+      name: namespace
+      in: query
+      required: false
+      schema:
+        type: string
+
+    password:
+      name: password
+      in: path
+      required: true
+      schema:
+        type: string
+        example:
+          data:
+            attributes:
+              password: "12345"
+
+    filter:
+      name: filter[term]
+      in: query
+      required: false
+      schema:
+        type: string
+
+    page_offset:
+      name: page[offset]
+      in: query
+      required: false
+      schema:
+        type: string
+      example: 0
+      description: "use lastKey id (response.meta.lasKey)"
+
+    page_limit:
+      name: page[limit]
+      in: query
+      required: false
+      schema:
+        type: integer
+      example: 10
+
+    include_recipient:
+      name: include
+      in: query
+      required: false
+      schema:
+        type: string
+      example: recipient
+
+  schemas:
+
+    campaign:
+      properties:
+        sender:
+          type: string
+        subject:
+          type: string
+        dateScheduled:
+          type: string
+        html:
+          type: string
+        variables:
+          type: object
+        active:
+          type: boolean
+        company:
+          type: string
+        user:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      example:
+        data:
+          type: "campaign"
+          id: "5a28e9eb9f042573d0daea21"
+          attributes:
+            sender: "sender"
+            subject: "subject,"
+            dateScheduled: "2018-03-30 19:29:32 +0700"
+            html: "<h1> html </h1>"
+            variables: { "email_variable_in_template": "variable" }
+            active: false
+            company: "5a28e9eb9f042573d0daea21"
+            user: "5a28e9eb9f042573d0daea21"
+            createdAt: "2018-03-30 19:29:32 +0700"
+            updatedAt: "2018-03-30 19:29:32 +0700"
+
+    user:
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        acceptPrivacy:
+          type: boolean
+        acceptExpiration:
+          type: boolean
+        email:
+          type: string
+        cofirmEmail:
+          type: boolean
+        cofirmCode:
+          type: string
+        password:
+          type: string
+        namespace:
+          type: string
+        role:
+          type: string
+        company:
+          type: string
+        recipient:
+          type: string
+      example:
+        data:
+          type: "user"
+          id: "5a28e9eb9f042573d0daea21"
+          attributes:
+            firstName: "firstName"
+            lastName: "lastName"
+            acceptPrivacy: true
+            acceptExpiration: true
+            email: "user@test.com"
+            cofirmEmail: true
+            cofirmCode: "jwt token"
+            password: "12345"
+            namespace: "urn:ipreplay:5a28e9eb9f042573d0daea28"
+            role: "root"
+            company: "5a28e9eb9f042573d0daea21"
+            recipient: "5a28e9eb9f042573d0daea24"
+
+    message:
+      properties:
+        value:
+          type: string
+      example:
+        data:
+          type: "message"
+          attributes:
+            value: "ok"
+
+    token:
+      properties:
+        value:
+          type: string
+      example:
+        data:
+          type: "token"
+          attributes:
+            value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNWFkNTlmYmQ2MmQxZDgxODRmZjJhYWM5IiwiaWF0IjoxNTIzOTUwMDg2LCJleHAiOjExNTIzOTUwMDg2fQ.xpbkB2ENi5JTmbjdWF5ssstwvzOpt4iCmJf3feJzzzw"
+
+    analytics:
+      properties:
+        countAll:
+          type: number
+        wait:
+          type: number
+        success:
+          type: number
+        failures:
+          type: number
+      example:
+        data:
+          type: "analytics"
+          attributes:
+            countAll: 10
+            wait: 2
+            success: 4
+            failures: 4
+
+    recipient:
+      properties:
+        email:
+          type: string
+        status:
+          type: string
+        countSent:
+          type: number
+        failureMessage:
+          type: array
+        campaign:
+          type: string
+      example:
+        data:
+          attributes:
+            email: "test@test.com"
+            status: "wait"
+            countSent: 10
+            failureMessage: ["error message"]
+            campaign: "5a28e9eb9f042573d0daea21"
+
+    company:
+      properties:
+        name:
+          type: string
+      example:
+        data:
+          attributes:
+            name: "test@test.com"
+
+    log:
+      properties:
+        level:
+          type: string
+        request:
+          type: object
+        response:
+          type: object
+        error:
+          type: object
+        relay:
+          type: string
+        namespace:
+          type: string
+        user:
+          type: string
+      example:
+        data:
+          attributes:
+            level: "log"
+            request: { "request": "body" }
+            response: { "response": "body" }
+            error: { "error_message": "body" }
+            relay: "OnLogs"
+            namespace: "urn:ipreplay:5a28e9eb9f042573d0daea28"
+            user: "5a28e9eb9f042573d0daea21"
+
+    event:
+      properties:
+        eventName:
+          type: string
+        namespace:
+          type: string
+      example:
+        data:
+          attributes:
+            eventName: "OnResicientsIndex"
+            namespace: "urn:ipreplay:5a28e9eb9f042573d0daea28"
+
+    pixel:
+      properties:
+        event:
+          type: string
+        typeEvent:
+          type: string
+        level:
+          type: string
+        payload:
+          type: object
+        state:
+          type: string
+        timestamp:
+          type: number
+        sessionId:
+          type: string
+        namespace:
+          type: string
+      example:
+        data:
+          attributes:
+            - event: "event name"
+              typeEvent: "event | tracking"
+              level: "info"
+              payload:
+                test: 1234
+              state: "state"
+              timestamp: 12345567
+              sessionId: "sessionId"
+              namespace: "urn:ipreplay:5a28e9eb9f042573d0daea28"
+
+    createPixel:
+      example:
+        data:
+          attributes:
+            - event: "event name"
+              typeEvent: "event"
+              level: "info"
+              payload:
+                test: 1234
+            - event: "event name2"
+              typeEvent: "tracking"
+              level: "debug"
+              payload:
+                test: 999
+        meta:
+          state: "state"
+          sessionId: "sessionId"
+          timestamp: 12345567
+          namespace: "namespace"

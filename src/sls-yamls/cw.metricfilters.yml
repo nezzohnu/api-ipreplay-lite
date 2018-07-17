@@ -1,0 +1,193 @@
+  Resources:
+    MetricBrowserChrome:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.payload.userAgent.browser.name = \"Chrome\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Browser Chrome"
+    MetricPageLoaded:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.event = \"nx:dom:loaded\" }"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Page Loaded"
+    MetricBrowserFirefox:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.payload.userAgent.browser.name = \"Firefox\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Browser Firefox"
+    MetricBrowserSafari:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.payload.userAgent.browser.name = \"Safari\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Browser Safari"
+    MetricBrowserMSIE:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.payload.userAgent.browser.name = \"MSIE\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Browser MSIE"
+    MetricBrowserOpera:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.payload.userAgent.browser.name = \"Opera\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Browser Opera"
+
+    MetricConsoleErrors:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.event = \"error\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Console Errors"
+
+    MetricPlayerErrors:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.event = \"player:error\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Player Errors"
+
+    MetricMediaErrors:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.event = \"media:error\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Media Errors"
+
+    MetricMediaHTML5Errors:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.event = \"media:html5:error\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Media Html5 Errors"
+
+    StateMetricPlayerLoaded:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.event = \"nx:state:player:loaded\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Player Loaded State"
+    MetricAppSessionDataAvailable:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.event = \"app:session:data\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Application Data Available"
+    StateMetricMediaStarted:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.event = \"nx:state:media:start\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Media Start State"
+    StateMetricMediaLoadStart:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.event = \"nx:state:media:request\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Media Request State"
+    StateMetricMediaComplete:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.event = \"nx:state:media:complete\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Media Complete State"
+    StateMetricMediaError:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.event = \"nx:state:media:error\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Media Error State"
+    StateMetricPageLoading:
+      Type: "AWS::Logs::MetricFilter"
+      DependsOn: "PixelLogs"
+      Properties:
+        FilterPattern: "{$.event = \"nx:state:page:loading\"}"
+        LogGroupName: ${self:custom.logGroupsPixels}
+        MetricTransformations:
+          - 
+            MetricValue: "1"
+            MetricNamespace: ${self:custom.metricsNamespace}
+            MetricName: "Media Page Loading"

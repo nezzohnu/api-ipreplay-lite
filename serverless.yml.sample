@@ -1,0 +1,264 @@
+service:
+  name: APP_NAME
+
+frameworkVersion: ">=1.21.0 <2.0.0"
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  stage: dev
+
+  # NOTE change it if need
+  region: REGION_NAME
+
+plugins:
+  - serverless-offline
+  - serverless-webpack
+  - serverless-appsync-plugin
+
+custom:
+  serverless-offline:
+    port: 4000
+
+  webpackIncludeModules: true
+
+  accountId: ACCOUNT_ID # https://console.aws.amazon.com/billing/home?#/account
+
+  appSync:
+
+    apiId: API_ID # NOTE add after deploy appsync
+    apiKey: API_KEY # NOTE add after deploy appsync
+
+    name: APP_SYNC_NAME
+    authenticationType: API_KEY # or AMAZON_COGNITO_USER_POOLS
+    serviceRole: "AppSyncServiceRole" # NOTE change it if need
+
+    mappingTemplatesLocation: "./mapping-templates"
+    schema: "./src/app/graphql/schema.graphql"
+
+    userPoolConfig:
+      awsRegion: AWS_REGION
+      defaultAction: ALLOW
+
+    dataSources:
+      - type: AWS_LAMBDA
+        name: Lambda
+        description: 'Lambda DataSource'
+        config:
+          lambdaFunctionArn: LAMBDA_FUNCTION_ARN
+          serviceRoleArn: SERVICE_ROLE_ARN
+
+    mappingTemplates:
+
+      - dataSource: Lambda
+        type: Query
+        field: companies
+        request: "companies-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: company
+        request: "company-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: confirm
+        request: "confirm-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: createCompany
+        request: "createCompany-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: createEvent
+        request: "createEvent-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: createPixels
+        request: "createPixels-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: createToken
+        request: "createToken-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: createUser
+        request: "createUser-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: createUserAdmin
+        request: "createUserAdmin-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: deleteCompany
+        request: "deleteCompany-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: deleteEvent
+        request: "deleteEvent-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: deleteMe
+        request: "deleteMe-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: deleteUser
+        request: "deleteUser-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: deleteUserAdmin
+        request: "deleteUserAdmin-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: event
+        request: "event-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: events
+        request: "events-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: logs
+        request: "logs-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: me
+        request: "me-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: pixels
+        request: "pixels-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: sendConfirm
+        request: "sendConfirm-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Subscription
+        field: subscribeToLogCompany
+        request: "subscribeToLogCompany-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Subscription
+        field: subscribeToLogEvent
+        request: "subscribeToLogEvent-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Subscription
+        field: subscribeToLogPixel
+        request: "subscribeToLogPixel-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Subscription
+        field: subscribeToLogUser
+        request: "subscribeToLogUser-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Subscription
+        field: subscribeToLogUserAdmin
+        request: "subscribeToLogUserAdmin-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: updateCompany
+        request: "updateCompany-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: updateEvent
+        request: "updateEvent-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: updateMe
+        request: "updateMe-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: updatePasswordMe
+        request: "updatePasswordMe-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Mutation
+        field: updateUser
+        request: "updateUser-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: user
+        request: "user-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: userAdmin
+        request: "userAdmin-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: users
+        request: "users-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: usersAdmin
+        request: "usersAdmin-request.txt"
+        response: "default-response.txt"
+
+functions:
+  graphql:
+    handler: handler.graphqlHandler
+    events:
+    - http:
+        path: api/v3
+        method: post
+        cors: true
