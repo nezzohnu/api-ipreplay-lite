@@ -1,15 +1,14 @@
 import * as AWS from 'aws-sdk'
 import { is, without, keys } from 'ramda'
-import { namespace } from './groups'
+import settings from 'config/settings'
 const log = new AWS.CloudWatchLogs({ apiVersion: '2014-03-28' })
 
 import * as pixels from './groups/pixels'
-import * as sessions from './groups/session'
+
 import { v4 as uuid } from "uuid"
 
 export const awsLogs = {
     pixels: pixels,
-    sessions: sessions
 }
 
 /**
@@ -28,7 +27,7 @@ const validateLogGroups = async () => {
     const groups = keys(awsLogs).map(key => awsLogs[key].GROUP_NAME)
 
     var params = {
-        logGroupNamePrefix: `${namespace}/`
+        logGroupNamePrefix: `${settings.aws_serverless_service}/`
     }
 
     const response = await log.describeLogGroups(params).promise()

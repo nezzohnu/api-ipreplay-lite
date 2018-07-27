@@ -4,6 +4,7 @@ import { users, user, createUser } from "./users"
 import { subscribeToLogPixel } from "./subscribe"
 import { pixels, sessions, createPixels, createPixelsJob } from "./pixels"
 import { metrics } from "./metrics"
+import { metrix } from "./metrix"
 
 export default {
 
@@ -15,6 +16,7 @@ export default {
 
     pixels,
     metrics,
+    metrix,
     sessions,
   },
 

@@ -4,6 +4,9 @@ import { authenticated, authenticatedPublic } from "app/services/graphql"
 import { can, cannot } from "app/policy"
 import { awsLogs, getLogStreamNameById, getLogEvents } from 'app/services/amazon/cwlog'
 import * as AWS from 'aws-sdk'
+import { GROUP_NAME } from 'app/services/amazon/groups/pixels'
+import logger from "app/services/logger"
+import { v4 as uuid } from "uuid"
 const log = new AWS.CloudWatchLogs({ apiVersion: '2014-03-28' })
 
 export const pixels = authenticated(async (root: any, args: any, ctx: any) => {
@@ -13,7 +16,7 @@ export const pixels = authenticated(async (root: any, args: any, ctx: any) => {
   const { limit, logStreamName, lastKey } = args.input
 
 
-  const promise = getAllLogEvents({ logStreamName, logGroupName: awsLogs.pixels.GROUP_NAME, nextToken: lastKey, limit })
+  const promise = getAllLogEvents({ logStreamName, logGroupName: GROUP_NAME, nextToken: lastKey, limit })
 
   let pixels = await Promise.all([promise])
 
@@ -34,41 +37,45 @@ export const sessions = authenticated(async (root: any, args: any, ctx: any) => 
   const { user } = ctx
   const { limit, lastKey, endTime, startTime } = args.input
 
-  const res = await log.filterLogEvents({
-    logGroupName: '/ipreplay-service/pixels',
-    interleaved: true,
-    endTime,
-    startTime,
-    limit,
-    nextToken: lastKey,
-    filterPattern: "{$.event = \"app:session:data\"}"
-  }).promise()
+  try {
+    const res = await log.filterLogEvents({
+      logGroupName: GROUP_NAME,
+      interleaved: true,
+      endTime,
+      startTime,
+      limit,
+      nextToken: lastKey,
+      filterPattern: "{$.event = \"app:session:data\"}"
+    }).promise()
 
-  if (!res.events) { throw new Error('Session data unavailable') }
+    if (!res.events) { throw new Error('Session data unavailable') }
+    logger.info('Sessions 3', res.events)
+    let items = [];
 
-  let items = [];
-
-  items = res.events.map(event => {
-    const message: any = JSON.parse(event.message)
-    return {
-      timestamp: message.timestamp,
-      sessionId: message.sessionId,
-      userId: message.payload.userId,
-      logStreamName: event.logStreamName,
-      createdAt: String(event.timestamp),
-      updatedAt: String(event.ingestionTime)
+    items = res.events.map(event => {
+      const message: any = JSON.parse(event.message)
+      return {
+        timestamp: message.timestamp,
+        sessionId: message.sessionId,
+        userId: message.payload.userId,
+        logStreamName: event.logStreamName,
+        createdAt: String(event.timestamp),
+        updatedAt: String(event.ingestionTime)
+      }
+    })
+    logger.info('Sessions 2', items)
+    let response = {
+      sessions: items,
+      namespace: user.namespace,
+      total: items.length,
+      lastKey: res.nextToken,
     }
-  })
 
-  let response = {
-    sessions: items,
-    namespace: user.namespace,
-    total: items.length,
-    lastKey: res.nextToken,
+    return response
+  } catch (err) {
+    logger.info('ERROR', err)
+    throw err
   }
-
-  return response
-
 })
 
 
@@ -116,35 +123,37 @@ export const createPixels = authenticatedPublic(async (root: any, args: any, ctx
 
 export const createPixelsJob = authenticatedPublic(async (root: any, args: any, ctx: any) => {
   const { user } = ctx
+  try {
+    if (await isLimitCountPixelsBySessionId(args)) {
+      throw new Error("pixels have limit by sessionId")
+    }
 
-  if (await isLimitCountPixelsBySessionId(args)) {
-    throw new Error("pixels have limit by sessionId")
+    let sessionId;
+
+    // create sessionId when no logStream
+    if (!args.input.logStreamName) {
+      sessionId = uuid()
+    }
+
+    const body = buildBody(args, user)
+
+    const data = await awsLogs.pixels.addPixel(body, {
+      logStreamName: args.input.logStreamName,
+      lastKey: args.input.lastKey,
+      id: sessionId
+    })
+    let response = {
+      value: "pixels send in a background job",
+      logStreamName: data.logStreamName,
+      lastKey: data.lastKey,
+      namespace: user.namespace,
+    }
+    return response
+
+  } catch (err) {
+    logger.info('ERROR', err)
+    throw err
   }
-
-  const body = buildBody(args, user)
-  // console.log(body)
-  //NOTE: paranoia
-  const sessionId = body[0].sessionId || body[1].sessionId || body[2].sessionId
-
-  // try {
-  const data = await awsLogs.pixels.addPixel(body, {
-    logStreamName: args.input.logStreamName,
-    lastKey: args.input.lastKey,
-    id: sessionId
-  })
-  let response = {
-    value: "pixels send in a background job",
-    logStreamName: data.logStreamName,
-    lastKey: data.lastKey,
-    namespace: user.namespace,
-  }
-  return response
-  // } catch (err) {
-  //   console.log(err)
-  //   return null
-  // }
-
-
 })
 
 const isLimitCountPixelsBySessionId = async (args) => {
@@ -213,7 +222,9 @@ const buildBody = (args, user) => {
   if (!(body instanceof Array)) body = [body]
 
   const addMeta = (element) => merge(element, meta)
+
   const addNamespace = (element) => merge(element, { namespace: user.namespace })
+
   const checkAndAddNamespace = (element) => {
     if (!element.namespace) {
       return merge(element, { namespace: user.namespace })
@@ -226,6 +237,8 @@ const buildBody = (args, user) => {
     try {
 
       if (element.timing) element.timing = JSON.parse(element.timing)
+
+      if (element.video) element.video = JSON.parse(element.video)
 
       if (element.payload) element.payload = JSON.parse(element.payload)
     } catch (err) {

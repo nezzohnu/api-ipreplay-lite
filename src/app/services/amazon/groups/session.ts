@@ -1,11 +1,11 @@
-import { namespace } from './'
 import * as AWS from 'aws-sdk'
 import { is, contains } from 'ramda'
 import { createLogStream, getLogStreamNameById, getLogEvents } from '../cwlog'
+import settings from 'config/settings'
 
 const log = new AWS.CloudWatchLogs({ apiVersion: '2014-03-28' })
 
-export const GROUP_NAME = namespace + '/sessions'
+export const GROUP_NAME = '/' + settings.aws_serverless_service + '/sessions'
 
 const getNextToken = async (groupName) => {
 

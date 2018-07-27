@@ -71,6 +71,7 @@ export const setCookieHeader = (res: any, value: any): void => {
 }
 
 export const authenticated = (fn: any) => async (parent: any, args: any, ctx: any, info: any) => {
+
   let { token } = ctx
 
   if (!token) {

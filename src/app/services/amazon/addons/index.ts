@@ -2,6 +2,18 @@ export * from './browser.metricsfilter'
 export * from './default.metricsfilter'
 export * from './device.metricsfilter'
 export * from './media.metricsfilter'
+export * from './error.metricsfilter'
+
+
+interface IPathValue {
+    path: string[];
+    value: string;
+}
+
+interface IMetricPattern {
+    metricFilter: IPathValue
+    shouldExist?: boolean; // default TRUE
+}
 
 /**
  * @desc Metrics Filter interface
@@ -9,10 +21,9 @@ export * from './media.metricsfilter'
  * @param {string} pattern Main filter pattern
  * @param {string[]} subpatterns Apply additional patterns to the result of the pattern.  Subpatterns are applied in listed order.
  */
-export interface IMetricsFilterAddon {
+export interface IMetricsFilterAddon extends IMetricPattern {
     id: string;
     label: string;
-    pattern: string;
     subpatterns?: ISubMetricsFilterPattern[]
 }
 
@@ -49,8 +60,5 @@ export interface IMetricsFilterAddon {
     }
     The subpattern look for additional logEvents with the matching key/value 'payload.windowID = e7633880ae' and pattern.
  */
-export interface ISubMetricsFilterPattern {
-    matchKeyPath: string[];
-    pattern: string;
-    shouldExist: boolean;
+export interface ISubMetricsFilterPattern extends IMetricPattern {
 }

@@ -1,11 +1,10 @@
-import { namespace } from './'
 import * as AWS from 'aws-sdk'
 import { is } from 'ramda'
 import { createLogStream } from '../cwlog'
-
+import settings from 'config/settings'
 const log = new AWS.CloudWatchLogs({ apiVersion: '2014-03-28' })
 
-export const GROUP_NAME = namespace + '/pixels'
+export const GROUP_NAME = '/' + settings.aws_serverless_service + '/pixels'
 
 /**
  * @desc Create a new log entry

@@ -135,6 +135,18 @@ custom:
 
       - dataSource: Lambda
         type: Query
+        field: metrix
+        request: "metrix-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: metrics
+        request: "metrics-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
         field: sessions
         request: "sessions-request.txt"
         response: "default-response.txt"

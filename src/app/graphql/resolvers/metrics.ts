@@ -1,8 +1,9 @@
 import { authenticated } from "app/services/graphql"
 import { filterLogs } from "app/services/amazon/cwlog"
 import { pluck, flatten, reduce, add, keys, test, path } from 'ramda'
+import * as mappings from '../../services/amazon/addons/marks'
+
 import * as parse from 'url'
-import logger from "app/services/logger"
 
 const statePattern = '{$.event = "*nx:state*"}'
 const resourcePattern = '{$.event = "resource"}'
@@ -101,19 +102,8 @@ const format = (states) => {
 }
 
 const pageload = (pageload) => reduce(add, 0, pageload) / pageload.length
-const dom = (doms) => {
 
-}
-const ebvc = (states) => {
-    states
-};
-const ebvs = (states) => { };
-
-const vst = (states) => { };
 const networklatency = (resources) => {
-    const count = resources.count
-
-    delete resources.count
 
     resources = keys(resources).map(key => {
         const resource = resources[key]
@@ -128,16 +118,10 @@ const networklatency = (resources) => {
 
     return resources
 };
-const resourceload = (states) => { };
-const errorsload = (states) => { };
-const errorsplayack = (states) => { };
-
-const ebrl = (states) => { };
-
 
 export const metrics = authenticated(async (root: any, args: any, ctx: any) => {
     const { user } = ctx
-
+    console.log(ctx)
     const options = buildOptions(args.input)
 
     const tmpMedias = flatten(await dowhilemore(filter, mediaPattern, options))
@@ -190,31 +174,27 @@ const checkStates = (o, state) => {
     const startTime = state.message.timing.startTime
 
     const message = state.message.event
-    if (message === "nx:state:page:loading") {
+    if (message === mappings.MARK.StateSessionStart) {
         o.pageLoad.push(startTime)
     }
 
-    if (message === "nx:state:player:loaded") {
+    if (message === mappings.MARK.StatePlayerLoadEnd) {
         o.playerLoad.push(startTime)
     }
 
-    if (message === "nx:state:media:request") {
+    if (message === mappings.MARK.StateMediaLoadStart) {
         o.mediaRequest.push(startTime)
     }
 
-    if (message === "nx:state:media:error") {
-        o.mediaError.push(startTime)
-    }
-
-    if (message === "nx:state:media:complete") {
+    if (message === mappings.MARK.StateMediaEnd) {
         o.mediaComplete.push(startTime)
     }
 
-    if (message === "nx:state:media:start") {
+    if (message === mappings.MARK.StateMediaStart) {
         o.mediaStart.push(startTime)
     }
 
-    if (message === "nx:state:unload") {
+    if (message === mappings.MARK.StateSessionEnd) {
         o.unload.push(startTime)
     }
 

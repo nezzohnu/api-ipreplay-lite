@@ -20,6 +20,7 @@ const haveHeaderWithRequestType = (event) => {
 }
 
 const graphqlHandler = async (event, context, callback) => {
+
   const callbackFilter = (error, output) => {
     if (output && output.headers) {
       output.headers['Access-Control-Allow-Origin'] = '*'
@@ -28,6 +29,7 @@ const graphqlHandler = async (event, context, callback) => {
 
     return callback(error, output)
   }
+
   const config = {
     schema,
     tracing: true,
@@ -47,14 +49,17 @@ const graphqlHandler = async (event, context, callback) => {
 
 const appAsyncHandler = async (event, context, callback) => {
   const { args, name, type } = event
+
   if (!name || !type) {
     return callback(new Error("event.name or event.type should be exist"), null)
   }
+
   const func = path([type, name], resolvers)
 
   if (!func) {
     return callback(new Error("event.name or event.type not valid"), null)
   }
+
   const res = {
     headers: {},
     setHeader: function (key, value) { this.headers[key] = value },
@@ -67,10 +72,13 @@ const appAsyncHandler = async (event, context, callback) => {
     req: event,
     res,
   }
+
   try {
     let result = await func(null, args, ctx)
+
     return context.succeed(result)
   } catch (err) {
+
     return context.succeed(err)
   }
 }

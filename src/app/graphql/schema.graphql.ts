@@ -11,6 +11,8 @@ export default `
 
     metrics(input: MetricsInput): MetricsWithMeta
 
+    metrix(input: MetricsInput): MetricsWithMeta
+
     sessions(input: SessionsInput): SessionsWithMeta
   }
 
@@ -160,6 +162,7 @@ export default `
     event: String
     typeEvent: String
     timing: String
+    video: String
     level: String
     payload: String
   }
@@ -209,18 +212,34 @@ export default `
     total: String
   }
 
+  type Video {
+    currentTime: String
+    duration: String
+    videoId: String
+  }
+
+  type Timing {
+    duration: String
+    startTime: String
+    entryType: String
+    name: String
+  }
+
   type Pixel {
     id: ID
 
     event: String
     typeEvent: String
     level: String
-    timing: String
+    timing: Timing
     payload: String
     state: String
+    video: Video
     timestamp: String
     sessionId: String
     namespace: String
+
+    logStreamName: String
 
     createdAt: String
     updatedAt: String
@@ -273,6 +292,21 @@ export default `
     duration: String
   }
 
+  type MetricData {
+    updatedAt: String
+    logStreamName: String
+    pixel: Pixel
+    createdAt: String
+  }
+
+  type Metrics {
+    total: String,
+    streamsSearched: String
+    data: [[Pixel]]
+    id: String
+    label: String
+  }
+
   type Session {
     timestamp: String
     sessionId: String
@@ -298,13 +332,18 @@ export default `
   }
 
   type MetricsWithMeta {
-    networkLatency: [MetricNetworkLatency]
-    resourceLatency: [MetricNetworkLatency]
-    userAgents: [MetricUserAgent]
-    medias: [MetricMedia]
-    states: MetricStates
-    doms: [MetricDoms]
-    avePageload: String
+    ads: [Metrics]
+    browsers: [Metrics]
+    devices: [Metrics]
+    errors: [Metrics]
+    latencies: [Metrics]
+    medias: [Metrics]
+    platforms: [Metrics]
+    referrers: [Metrics]
+    regions: [Metrics]
+    sessions: [Metrics]
+    sources: [Metrics]
+    states: [Metrics]
     namespace: String
     total: String
     lastKey: String
