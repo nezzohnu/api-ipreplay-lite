@@ -8,12 +8,14 @@ export default `
     users(input: PatinationInput): UsersWithMeta
 
     pixels(input: PixelsInput): PixelsWithMeta
-
-    metrics(input: MetricsInput): MetricsWithMeta
-
-    metrix(input: MetricsInput): MetricsWithMeta
-
     sessions(input: SessionsInput): SessionsWithMeta
+
+    metricsBrowser(input: MetricsInput): MetricsWithMeta
+    metricsLatency(input: MetricsInput): MetricsLatencyWithMeta
+    metricsMedia(input: MetricsInput): MetricsWithMeta
+    metricsSession(input: MetricsInput): MetricsWithMeta
+    metricsOs(input: MetricsInput): MetricsWithMeta
+    metricsError(input: MetricsInput): MetricsWithMeta
   }
 
   type Mutation {
@@ -245,53 +247,6 @@ export default `
     updatedAt: String
   }
 
-  type MetricNetworkLatency {
-    label: String
-    metric: String
-  }
-
-  type MetricResourceLatency {
-    label: String
-    metric: String
-  }
-
-  type MetricDoms {
-    label: String
-    metric: String
-  }
-
-  type MetricUAProp {
-    name: String
-    version: String
-  }
-
-
-  type MetricUserAgent {
-    count: String
-    browser: MetricUAProp
-    os: MetricUAProp
-    engine: MetricUAProp
-  }
-
-  type MetricStates {
-    pageLoad: [String]
-    playerLoad: [String]
-    mediaError: [String]
-    mediaRequest: [String]
-    mediaComplete: [String]
-    mediaStart: [String]
-    unload: [String]
-  }
-
-  type MetricMedia {
-    count: String
-    title: String
-    description: String
-    videoId: String
-    isAd: String
-    duration: String
-  }
-
   type MetricData {
     updatedAt: String
     logStreamName: String
@@ -307,9 +262,20 @@ export default `
     label: String
   }
 
+  type MetricLatency{
+    name: String,
+    duration: String
+  }
+
+  type MetricsLatency {
+    total: String,
+    data: [MetricLatency]
+    id: String
+    label: String
+  }
+
   type Session {
     timestamp: String
-    sessionId: String
     userId: String
     logStreamName: String
 
@@ -331,21 +297,15 @@ export default `
     lastKey: String
   }
 
-  type MetricsWithMeta {
-    ads: [Metrics]
-    browsers: [Metrics]
-    devices: [Metrics]
-    errors: [Metrics]
-    latencies: [Metrics]
-    medias: [Metrics]
-    platforms: [Metrics]
-    referrers: [Metrics]
-    regions: [Metrics]
-    sessions: [Metrics]
-    sources: [Metrics]
-    states: [Metrics]
-    namespace: String
-    total: String
+  type MetricsLatencyWithMeta{
+    data: [MetricsLatency]
+    collections: String
+    lastKey: String
+  }
+
+  type MetricsWithMeta{
+    data: [Metrics]
+    collections: String
     lastKey: String
   }
 

@@ -51,13 +51,13 @@ const appAsyncHandler = async (event, context, callback) => {
   const { args, name, type } = event
 
   if (!name || !type) {
-    return callback(new Error("event.name or event.type should be exist"), null)
+    return context.fail(new Error("event.name or event.type should be exist"), null)
   }
 
   const func = path([type, name], resolvers)
 
   if (!func) {
-    return callback(new Error("event.name or event.type not valid"), null)
+    return context.fail(new Error("event.name or event.type not valid"), null)
   }
 
   const res = {
@@ -79,12 +79,13 @@ const appAsyncHandler = async (event, context, callback) => {
     return context.succeed(result)
   } catch (err) {
 
-    return context.succeed(err)
+    return context.fail(err)
   }
 }
 
 export default async (event, context, callback) => {
   logger.info("EVENT", event)
+  logger.info('CTXT', context)
 
   if (haveHeaderWithRequestType(event)) {
     return await graphqlHandler(event, context, callback)

@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk'
 import { path, zipWith, reduce, equals, pluck, groupWith, keys, contains, pick } from 'ramda'
+import logger from "app/services/logger"
 
 AWS.config.region = "us-west-2"
 const log = new AWS.CloudWatchLogs({ apiVersion: '2014-03-28' })
@@ -14,6 +15,7 @@ import platforms from './platforms'
 import referrers from './referrers'
 import regions from './regions'
 import sessions from './sessions'
+import os from './os'
 import sources from './sources'
 import states from './states'
 
@@ -27,10 +29,13 @@ export default {
     platforms,
     referrers,
     regions,
+    os,
     sessions,
     sources,
     states
 }
+
+export const deepPluck = (ppath: string[], list: object[]) => list.map(item => path(ppath, item))
 
 export const getFilter = (metricFiler) => `{$.${metricFiler.path.join('.')} = \"${metricFiler.value}\"}`
 export const getFilterComboStr = (metricFiler) => `($.${metricFiler.path.join('.')} = \"${metricFiler.value}\")`
@@ -95,7 +100,7 @@ export const getAllLogs = async (filters, options) => {
         return Promise.resolve({ filter: filters, result: events })
 
     } catch (err) {
-        console.log(err)
+        logger.info('ERROR', err)
         return Promise.resolve(err)
     }
 }

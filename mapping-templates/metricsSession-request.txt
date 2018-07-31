@@ -3,7 +3,7 @@
     "operation": "Invoke",
     "payload": {
       "type": "Query",
-      "name": "metrix",
+      "name": "metricsSession",
       "headers": $util.toJson($context.request.headers),
       "args": $util.toJson($context.arguments),
     }

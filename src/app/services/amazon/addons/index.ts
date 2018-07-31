@@ -3,6 +3,7 @@ export * from './default.metricsfilter'
 export * from './device.metricsfilter'
 export * from './media.metricsfilter'
 export * from './error.metricsfilter'
+export * from './network.metricsfilter'
 
 
 interface IPathValue {

@@ -121,7 +121,7 @@ const networklatency = (resources) => {
 
 export const metrics = authenticated(async (root: any, args: any, ctx: any) => {
     const { user } = ctx
-    console.log(ctx)
+
     const options = buildOptions(args.input)
 
     const tmpMedias = flatten(await dowhilemore(filter, mediaPattern, options))

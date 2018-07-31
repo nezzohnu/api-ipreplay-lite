@@ -10,8 +10,7 @@ export const Media: IMetricsFilterAddon[] = [
     {
         id: "media:start:failure", label: "Media Start Failure", metricFilter: { path: ['event'], value: mappings.MARK.StateSessionStart },
         subpatterns: [{ metricFilter: { path: ['event'], value: mappings.MARK.StateMediaStart }, shouldExist: false }]
-    }
-    ,
+    },
     {
         id: "media:load:start:failure", label: "Media Load Start Failure",
         metricFilter: { path: ['event'], value: mappings.MARK.StateSessionStart },
@@ -27,9 +26,6 @@ export const Media: IMetricsFilterAddon[] = [
         { metricFilter: { path: ['event'], value: mappings.MARK.StateMediaStart }, shouldExist: true },
         { metricFilter: { path: ['event'], value: mappings.MARK.StatePlayerLoadEnd }, shouldExist: true },
         { metricFilter: { path: ['event'], value: mappings.MARK.StateMediaEnd }, shouldExist: true }]
-    },
-    {
-        id: "media:start:time", label: "Media Start Time", metricFilter: { path: ['timing', 'name'], value: mappings.MARK.StateMediaStart }
     },
     {
         id: "session:requests", label: "Session Requests", metricFilter: { path: ['event'], value: mappings.MARK.StateSessionStart }

@@ -23,7 +23,7 @@ export default async (options?) => {
         const data = serializer(streams)
 
         payload.push({
-            total: matches['true'],
+            total: matches['true'] || 0,
             streamsSearched: result.length,
             data: data,
             label: metrics.filter.label,

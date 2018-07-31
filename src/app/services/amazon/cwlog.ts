@@ -102,4 +102,4 @@ export const getLogEvents = async (options: { logStreamName, logGroupName, endTi
     return Promise.resolve(lists)
 }
 
-validateLogGroups()
+// validateLogGroups()

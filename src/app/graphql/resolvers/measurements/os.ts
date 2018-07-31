@@ -1,6 +1,8 @@
-import { countBy, pluck } from 'ramda'
-import { Errors as list } from '../../../services/amazon/addons'
-import { getAllLogs, validateLogStreams, uniqueByBoolean, serializer, groupLogStreams } from './index'
+import { countBy, pluck, flatten } from 'ramda'
+import { DeviceOS as list } from '../../../services/amazon/addons'
+import { getAllLogs, validateLogStreams, serializer, groupLogStreams } from './index'
+
+const uniqueNameAndVersion = (a) => [a.os.name, a.os.version]
 
 export default async (options?) => {
     let promises = list.map((pattern) => getAllLogs(pattern, options))
@@ -13,16 +15,22 @@ export default async (options?) => {
 
     metricsList.forEach(metrics => {
         try {
-
             const result = validateLogStreams(metrics.filter, metrics.result)
-            const matches = countBy(uniqueByBoolean)(pluck('isValid', result))
+
+            let items = pluck('stream', result)
+
+            items = flatten(items)
+
+            const userAgent = items.map(stream => stream.message.payload.userAgent)
+
+            const matches = countBy(uniqueNameAndVersion)(userAgent)
 
             const streams = pluck('stream', result)
 
             const data = serializer(streams)
 
             payload.push({
-                total: matches['true'],
+                total: JSON.stringify(matches),
                 streamsSearched: result.length,
                 data: data,
                 label: metrics.filter.label,

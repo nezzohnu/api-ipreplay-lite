@@ -135,14 +135,38 @@ custom:
 
       - dataSource: Lambda
         type: Query
-        field: metrix
-        request: "metrix-request.txt"
+        field: metricsBrowser
+        request: "metricsBrowser-request.txt"
         response: "default-response.txt"
 
       - dataSource: Lambda
         type: Query
-        field: metrics
-        request: "metrics-request.txt"
+        field: metricsError
+        request: "metricsError-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: metricsLatency
+        request: "metricsLatency-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: metricsMedia
+        request: "metricsMedia-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: metricsOs
+        request: "metricsOs-request.txt"
+        response: "default-response.txt"
+
+      - dataSource: Lambda
+        type: Query
+        field: metricsSession
+        request: "metricsSession-request.txt"
         response: "default-response.txt"
 
       - dataSource: Lambda

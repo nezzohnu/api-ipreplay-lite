@@ -3,8 +3,7 @@ import { me, updateMe, updatePasswordMe, deleteMe } from "./me"
 import { users, user, createUser } from "./users"
 import { subscribeToLogPixel } from "./subscribe"
 import { pixels, sessions, createPixels, createPixelsJob } from "./pixels"
-import { metrics } from "./metrics"
-import { metrix } from "./metrix"
+import { metricsBrowser, metricsError, metricsSession, metricsLatency, metricsMedia, metricsOs } from "./metric"
 
 export default {
 
@@ -15,9 +14,14 @@ export default {
     users,
 
     pixels,
-    metrics,
-    metrix,
     sessions,
+
+    metricsBrowser,
+    metricsError,
+    metricsLatency,
+    metricsMedia,
+    metricsOs,
+    metricsSession
   },
 
   Mutation: {

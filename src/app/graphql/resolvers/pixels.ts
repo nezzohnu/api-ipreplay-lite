@@ -7,6 +7,7 @@ import * as AWS from 'aws-sdk'
 import { GROUP_NAME } from 'app/services/amazon/groups/pixels'
 import logger from "app/services/logger"
 import { v4 as uuid } from "uuid"
+import * as mappings from '../../services/amazon/addons/marks'
 const log = new AWS.CloudWatchLogs({ apiVersion: '2014-03-28' })
 
 export const pixels = authenticated(async (root: any, args: any, ctx: any) => {
@@ -35,8 +36,12 @@ export const pixels = authenticated(async (root: any, args: any, ctx: any) => {
 export const sessions = authenticated(async (root: any, args: any, ctx: any) => {
 
   const { user } = ctx
-  const { limit, lastKey, endTime, startTime } = args.input
+  let { limit, lastKey, endTime, startTime } = args.input
 
+  if (!startTime) {
+    // minus one day
+    startTime = (new Date().getTime() - 86400000)
+  }
   try {
     const res = await log.filterLogEvents({
       logGroupName: GROUP_NAME,
@@ -45,11 +50,11 @@ export const sessions = authenticated(async (root: any, args: any, ctx: any) => 
       startTime,
       limit,
       nextToken: lastKey,
-      filterPattern: "{$.event = \"app:session:data\"}"
+      filterPattern: `{$.event = \"${mappings.MARK.SessionData}\"}`
     }).promise()
 
     if (!res.events) { throw new Error('Session data unavailable') }
-    logger.info('Sessions 3', res.events)
+
     let items = [];
 
     items = res.events.map(event => {
@@ -63,7 +68,7 @@ export const sessions = authenticated(async (root: any, args: any, ctx: any) => 
         updatedAt: String(event.ingestionTime)
       }
     })
-    logger.info('Sessions 2', items)
+
     let response = {
       sessions: items,
       namespace: user.namespace,
