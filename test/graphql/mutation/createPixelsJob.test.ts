@@ -1,14 +1,20 @@
 import "../../support/hooks"
 import { repeat } from "ramda"
 import { v4 as uuid } from 'uuid'
-
+declare const expect, it, describe, before, factory, execGraphql, after
 const action = "createPixelsJob"
-const query = `
-  mutation createPixelsJob($input: CreatePixelsInput!) {
+const deleteMutation = `
+mutation deleteSessions($input: DeleteSessionsInput!){
+	deleteSessions(input:$input){
+		value
+	}
+}
+`
+const mutation = `
+mutation createPixelsJob($input: CreatePixelsInput!) {
     createPixelsJob(input: $input) {
-      value
-      lastKey
       namespace
+      lastKey
       logStreamName
     }
   }
@@ -31,33 +37,35 @@ describe(__filename, () => {
         describe('user is guest', () => {
             let user
             let res
-            let sessionId = uuid()
+            // let sessionId = uuid()
             const prefix = new Date().toJSON().split('T')[0].replace(/\-/g, "/")
             const timestamp = `${new Date().getTime()}`
 
-            beforeEach(async () => {
-                user = await factory.create("userGuest")
-
-                const input = {
-                    pixels: getPixels(1),
-                    meta: {
-                        state: "state",
-                        sessionId: sessionId,
-                        timestamp,
-                    },
+            before(async () => {
+                user = await factory.create("user")
+                let variableValues = {
+                    input: {
+                        pixels: getPixels(1),
+                        meta: { state: "init", timestamp: +new Date() }
+                    }
                 }
+                res = await execGraphql({ query: mutation, variableValues, user })
 
-                res = await graphqlHandler(query, input, user.publicKey)
+            })
 
+            after(async () => {
+                let user = await factory.create("user")
+                await execGraphql({
+                    query: deleteMutation, variableValues: {
+                        input: { logStreamNames: [res.data.createPixelsJob.logStreamName] }
+                    }, user
+                })
             })
 
             it(`should return valid response`, async () => {
                 const attr = {
-                    value: "pixels send in a background job",
-                    namespace: user.namespace,
-                    logStreamName: prefix + '/' + sessionId
+                    namespace: user.namespace
                 }
-
                 expect(res.data[action]).to.containSubset(attr)
             })
         })

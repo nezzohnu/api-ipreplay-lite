@@ -93,7 +93,13 @@ export const authenticated = (fn: any) => async (parent: any, args: any, ctx: an
 }
 
 export const authenticatedPublic = (fn: any) => async (parent: any, args: any, ctx: any, info: any) => {
-  let { publicKey } = ctx
+  let publicKey
+
+  if (settings.env === "test") {
+    publicKey = ctx.req.headers['x-public-key']
+  } else {
+    publicKey = ctx.publicKey
+  }
 
   if (!publicKey) {
     throw new Error("Public key should exist")

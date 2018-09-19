@@ -1,5 +1,5 @@
 import * as AWS from 'aws-sdk'
-import { path, zipWith, reduce, equals, pluck, groupWith, keys, contains, pick } from 'ramda'
+import { path, zipWith, reduce, has, equals, pluck, groupWith, keys, contains, pick } from 'ramda'
 import logger from "app/services/logger"
 
 AWS.config.region = "us-west-2"
@@ -91,16 +91,35 @@ export const groupLogStreams = (filters, events) => {
 export const getAllLogs = async (filters, options) => {
     try {
 
+        if (!has('interleaved')(options)) {
+            options['interleaved'] = true
+        }
+
+        if (!has('endTime')(options)) {
+            options['endTime'] = +new Date()
+        }
+
+        if (!has('startTime')(options)) {
+            options['startTime'] = +new Date() - 1000 * 60 * 60 * 24
+        }
+
         const patterns = combinePattern(filters)
 
         let { events, nextToken } = await log.filterLogEvents({ ...options, filterPattern: patterns }).promise()
 
-        events = messageToJSON(events)
+        let response
+        if (nextToken) {
+            response = await getAllLogs(filters, { ...options, nextToken: nextToken })
+            response['result'] = response.result.concat(events)
+        }
 
-        return Promise.resolve({ filter: filters, result: events })
+        (response)
+            ? response = response
+            : response = { filter: filters, result: messageToJSON(events) }
+
+        return Promise.resolve(response)
 
     } catch (err) {
-        logger.info('ERROR', err)
         return Promise.resolve(err)
     }
 }

@@ -12,7 +12,7 @@ dist
 .swp
 **/*/.Apple*
 .Apple*
-
+docker-compose.local.yml
 .webpack
 .serverless
 cicd

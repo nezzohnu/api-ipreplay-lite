@@ -4,21 +4,20 @@ import { createJwt } from "app/services/jwt"
 import { Context } from "app/grapql/config"
 import schema from 'app/graphql/schema'
 
-export default async (options: { query, variableValues, rootValue, user, unauth, publicKey }): Promise<any> => {
-  const { query, variableValues, rootValue, user, unauth, publicKey } = options
-  const context = await buildContext(user, unauth, publicKey)
+export default async (options: { query, variableValues, rootValue, user }): Promise<any> => {
+  const { query, variableValues, rootValue, user } = options
+  const context = await buildContext(user)
   return await graphql(schema, query, rootValue || {}, context, variableValues || {})
 }
 
-const buildContext = async (user: any, unauth: boolean, publicKey: string): Context => {
+const buildContext = async (user: any): Context => {
   let token = null
+  let publicKey = null
 
-  if (!unauth && !user) {
-    const user = await factory.create("user")
+  if (user) {
     token = await createJwt(user)
+    publicKey = user.publicKey
   }
-
-  if (user) token = await createJwt(user)
 
   let context = {
     token,
@@ -30,12 +29,14 @@ const buildContext = async (user: any, unauth: boolean, publicKey: string): Cont
       headers: {
         "userAgent": "userAgent",
         "user-agent": "user-agent",
-        'x-forwarded-for': "x-forwarded-for"
+        'x-forwarded-for': "x-forwarded-for",
       },
     }
   }
-  if (publicKey) {
-    context.req.headers['x-public-key'] = publicKey
-  }
+
+  if (publicKey) context.req.headers['x-public-key'] = publicKey
+
+  if (token) context.req.headers['x-api-key'] = token
+
   return context
 }

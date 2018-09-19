@@ -3,9 +3,11 @@ import * as sinon from 'sinon'
 // import * as sendEmail from "app/services/emails/send"
 import { User } from "app/models"
 
+declare const expect, it, describe, beforeEach, factory, matchers, execGraphql
+
 const action = "createUser"
 const query = `
-  mutation createUser($input: CreateUserInput!) {
+mutation createUser($input: CreateUserInput!) {
     createUser(input: $input) {
       user {
         ${matchers.userAttr}
@@ -14,67 +16,45 @@ const query = `
     }
   }
 `
-
 describe(__filename, () => {
-  let mockSend
+  describe('create user', () => {
 
-  // beforeEach(() => {
-  //   mockSend = sinon.stub(sendEmail, 'default').returns(sinon.spy())
-  // })
-
-  // afterEach(() => {
-  //   mockSend.restore()
-  // })
-
-  describe('valid params given', () => {
-
-    describe('without user', () => {
+    describe('new user', async () => {
       let res
-      let recipient
       let user
-      let newUser
 
       beforeEach(async () => {
-        newUser = await factory.build("user")
+        user = await factory.create("user")
 
         const variableValues = {
           input: {
-            firstName: newUser.firstName,
-            lastName: newUser.lastName,
-            email: newUser.email,
-            password: newUser.password,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: "test@gmail.com",
+            password: user.password,
           }
         }
-
-        res = await execGraphql({ query, variableValues, unauth: true })
+        res = await execGraphql({ query, variableValues })
       })
 
+      it(`should return new user`, async () => {
+        expect(res.data.createUser.user.email).to.eql("test@gmail.com")
+      })
       it(`should return valid response`, async () => {
         const attr = {
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
+          firstName: user.firstName,
+          lastName: user.lastName,
         }
 
         expect(res.data[action].user).to.containSubset(attr)
       })
-
       it(`should have property meta`, async () => {
         expect(res.data[action]).to.have.property("namespace")
       })
-
-      // it("should called send email", async () => {
-      //   expect(mockSend.called).to.eql(true)
-      // })
-
     })
 
-  })
-
-  describe('wrong params given', () => {
-
-    describe('without user', () => {
+    describe('duplicate email', async () => {
       let res
-      let recipient
       let newUser
       let user
 
@@ -85,28 +65,18 @@ describe(__filename, () => {
 
         const variableValues = {
           input: {
-            firstName: newUser.firstName,
-            lastName: newUser.lastName,
+            firstName: user.firstName,
+            lastName: user.lastName,
             email: newUser.email,
-            password: newUser.password,
+            password: user.password,
           }
         }
-
-        res = await execGraphql({ query, variableValues, unauth: true })
+        res = await execGraphql({ query, variableValues })
       })
 
-      it(`should return wrong message`, async () => {
-        expect(res.errors[0]).to.have.property("message").eql("email already exist")
+      it(`should return error`, async () => {
+        expect(res.errors[0]).to.have.property('message').eql("email already exist")
       })
-
-      it(`should return valid response`, async () => {
-        const users = await User.find()
-
-        expect(users.count).to.eql(1)
-      })
-
     })
-
   })
-
 })

@@ -1,410 +1,329 @@
-// import "../../support/hooks"
-// import * as sinon from 'sinon'
-// import Pixel from "app/models/pixel"
+import "../../support/hooks"
+import * as sinon from 'sinon'
+import Pixel from "app/models/pixel"
 
-// const action = "createPixels"
-// const query = `
-//   mutation createPixels($input: CreatePixelsInput!) {
-//     createPixels(input: $input) {
-//       pixels {
-//         ${matchers.pixelAttr}
-//       }
-//       relay
-//       namespace
-//       total
-//       lastKey
-//       ${matchers.logRequest}
-//     }
-//   }
-// `
+declare const expect, it, describe, beforeEach, factory, matchers, execGraphql
 
-// describe(__filename, () => {
+const action = "createPixelsJob"
+const deleteMutation = `
+mutation deleteSessions($input: DeleteSessionsInput!){
+	deleteSessions(input:$input){
+		value
+	}
+}
+`
+const query = `
+mutation createPixelsJob($input: CreatePixelsInput!) {
+    createPixelsJob(input: $input) {
+      namespace
+      lastKey
+      logStreamName
+    }
+  }
+`
+describe(__filename, () => {
+    describe('pixels', async () => {
 
-//   describe('valid params given', () => {
+        describe('create multiple pixels', async () => {
+            let res
+            before(async () => {
+                let user = await factory.create("user")
+                let variableValues = {
+                    input: {
+                        pixels: [
+                            {
+                                event: "nx:begin",
+                                level: "info",
+                                typeEvent: "tracking",
+                                timing: "{\"hello\":\"world\"}",
+                                payload: "{\"timing\":{\"name\":\"nx:begin\",\"entryType\":\"mark\",\"startTime\":4459.89999989979,\"duration\":0}}",
+                                video: "{\"hi\":\"hello\"}"
+                            },
+                            {
+                                event: "nx:end",
+                                level: "info",
+                                typeEvent: "tracking",
+                                timing: "{\"hello\":\"world\"}",
+                                payload: "{\"timing\":{\"name\":\"nx:begin\",\"entryType\":\"mark\",\"startTime\":4459.89999989979,\"duration\":0}}",
+                                video: "{\"hi\":\"hello\"}"
+                            }
+                        ],
+                        meta: { state: "init", timestamp: +new Date() }
+                    }
+                }
+                res = await execGraphql({ query, variableValues, user })
+            })
+            after(async () => {
+                let user = await factory.create("user")
+                await execGraphql({
+                    query: deleteMutation, variableValues: {
+                        input: { logStreamNames: [res.data.createPixelsJob.logStreamName] }
+                    }, user
+                })
+            })
 
-//     // describe('check limit count', () => {
-//     //   let mock
-//     //   let user
-//     //   let company
-//     //   let campaign
-//     //   let recipient
-//     //   let res
-//     //   const sessionId = "sessionId"
-//     //   const timestamp = new Date().getTime()
+            it(`should return logStreamName`, async () => {
+                expect(res.data[action]).to.have.property('logStreamName')
+            })
 
-//     //   // NOTE stub Pixel.isLimitCount
-//     //   beforeEach(() => { mock = sinon.stub(Pixel, 'isLimitCount').returns(true) })
-//     //   afterEach(() => { mock.restore() })
+            it(`should return lastKey`, async () => {
+                expect(res.data[action]).to.have.property('lastKey')
+            })
 
-//     //   beforeEach(async () => {
-//     //     user = await factory.create("user")
+            it(`should return namespace`, async () => {
+                expect(res.data[action]).to.have.property('namespace')
+            })
+        })
 
-//     //     await factory.create("pixel", { sessionId })
-//     //     await factory.create("pixel", { sessionId })
+        describe('append pixels to existing logStream', async () => {
+            let res
+            before(async () => {
+                let user = await factory.create("user")
+                let variableValues = {
+                    input: {
+                        pixels: [
+                            {
+                                event: "nx:begin",
+                                level: "info",
+                                typeEvent: "tracking",
+                                timing: "{\"hello\":\"world\"}",
+                                payload: "{\"timing\":{\"name\":\"nx:begin\",\"entryType\":\"mark\",\"startTime\":4459.89999989979,\"duration\":0}}",
+                                video: "{\"hi\":\"hello\"}"
+                            },
+                            {
+                                event: "nx:end",
+                                level: "info",
+                                typeEvent: "tracking",
+                                timing: "{\"hello\":\"world\"}",
+                                payload: "{\"timing\":{\"name\":\"nx:begin\",\"entryType\":\"mark\",\"startTime\":4459.89999989979,\"duration\":0}}",
+                                video: "{\"hi\":\"hello\"}"
+                            }
+                        ],
+                        meta: { state: "init", timestamp: +new Date() }
+                    }
+                }
+                res = await execGraphql({ query, variableValues, user })
 
-//     //     const variableValues = {
-//     //       input: {
-//     //         pixels: [
-//     //           {
-//     //             event: "event1",
-//     //             typeEvent: "event",
-//     //             level: "info",
-//     //             payload: JSON.stringify({ payload: 'event1' }),
-//     //             namespace: "namespace",
-//     //           },
-//     //         ],
-//     //         meta: {
-//     //           state: "state",
-//     //           sessionId: sessionId,
-//     //           timestamp,
-//     //         },
-//     //       },
-//     //     }
+                variableValues.input['logStreamName'] = res.data[action].logStreamName
+                variableValues.input['lastKey'] = res.data[action].lastKey
 
-//     //     res = await execGraphql({ query, variableValues, user })
-//     //   })
+                res = await execGraphql({ query, variableValues, user })
+            })
 
-//     //   it(`should return wrong result`, async () => {
-//     //     expect(res.errors[0]).to.have.property('message').eql("pixels have limit by sessionId")
-//     //   })
-//     // })
+            after(async () => {
+                let user = await factory.create("user")
+                await execGraphql({
+                    query: deleteMutation, variableValues: {
+                        input: { logStreamNames: [res.data.createPixelsJob.logStreamName] }
+                    }, user
+                })
+            })
 
-//     describe('user is guest', () => {
-//       let user
-//       let company
-//       let campaign
-//       let recipient
-//       let res
-//       const timestamp = `${new Date().getTime()}`
+            it(`should return logStreamName`, async () => {
+                expect(res.data[action]).to.have.property('logStreamName')
+            })
 
-//       beforeEach(async () => {
-//         user = await factory.create("userGuest")
+            it(`should return lastKey`, async () => {
+                expect(res.data[action]).to.have.property('lastKey')
+            })
 
-//         const variableValues = {
-//           input: {
-//             pixels: [
-//               {
-//                 event: "event1",
-//                 typeEvent: "event",
-//                 level: "info",
-//                 payload: JSON.stringify({ payload: 'event1' }),
-//                 namespace: "namespace",
-//               },
-//               {
-//                 typeEvent: "tracking",
-//                 event: "event2",
-//                 level: "info",
-//                 payload: JSON.stringify({ payload: 'event2' }),
-//                 namespace: "namespace",
-//               },
-//             ],
-//             meta: {
-//               state: "state",
-//               sessionId: "sessionId",
-//               timestamp,
-//             },
-//           },
-//         }
+            it(`should return namespace`, async () => {
+                expect(res.data[action]).to.have.property('namespace')
+            })
+        })
 
-//         res = await execGraphql({ query, variableValues, user })
-//       })
+        describe('create single pixel', async () => {
+            let res
+            before(async () => {
+                let user = await factory.create("user")
+                let variableValues = {
+                    input: {
+                        pixels: [
+                            {
+                                event: "nx:begin",
+                                level: "info",
+                                typeEvent: "tracking",
+                                timing: "{\"hello\":\"world\"}",
+                                payload: "{\"timing\":{\"name\":\"nx:begin\",\"entryType\":\"mark\",\"startTime\":4459.89999989979,\"duration\":0}}",
+                                video: "{\"hi\":\"hello\"}"
+                            }
+                        ],
+                        meta: { state: "init", timestamp: +new Date() }
+                    }
+                }
+                res = await execGraphql({ query, variableValues, user })
+            })
 
-//       it(`should return event1`, async () => {
-//         const attr = {
-//           event: "event1",
-//           typeEvent: "event",
-//           level: "info",
-//           payload: JSON.stringify({ payload: 'event1' }),
-//           state: "state",
-//           timestamp,
-//           sessionId: "sessionId",
-//           namespace: user.namespace,
-//         }
-//         console.log(res.data[action].pixels)
-//         expect(res.data[action].pixels).to.containSubset([attr])
-//       })
+            after(async () => {
+                let user = await factory.create("user")
+                await execGraphql({
+                    query: deleteMutation, variableValues: {
+                        input: { logStreamNames: [res.data.createPixelsJob.logStreamName] }
+                    }, user
+                })
+            })
 
-//       it(`should return event2`, async () => {
-//         const attr = {
-//           typeEvent: "tracking",
-//           event: "event2",
-//           level: "info",
-//           payload: JSON.stringify({ payload: 'event2' }),
-//           state: "state",
-//           timestamp,
-//           sessionId: "sessionId",
-//           namespace: user.namespace,
-//         }
+            it(`should return logStreamName`, async () => {
+                expect(res.data[action]).to.have.property('logStreamName')
+            })
 
-//         expect(res.data[action].pixels).to.containSubset([attr])
-//       })
+            it(`should return lastKey`, async () => {
+                expect(res.data[action]).to.have.property('lastKey')
+            })
 
-//       it(`should return total`, async () => {
-//         expect(res.data[action].total).to.eql("2")
-//       })
-//     })
+            it(`should return namespace`, async () => {
+                expect(res.data[action]).to.have.property('namespace')
+            })
+        })
 
-//     // describe('root is guest without namespace', () => {
-//     //   let user
-//     //   let company
-//     //   let campaign
-//     //   let recipient
-//     //   let res
-//     //   const timestamp = `${new Date().getTime()}`
+        describe('invalid pixel property', async () => {
+            let res
 
-//     //   beforeEach(async () => {
-//     //     user = await factory.create("userRoot")
+            before(async () => {
+                let user = await factory.create("user")
+                let variableValues = {
+                    input: {
+                        pixels: [
+                            {
+                                invalidProp: "invalidValue",
+                                event: "nx:begin",
+                                level: "info",
+                                typeEvent: "tracking",
+                                timing: "{\"hello\":\"world\"}",
+                                payload: "{\"timing\":{\"name\":\"nx:begin\",\"entryType\":\"mark\",\"startTime\":4459.89999989979,\"duration\":0}}",
+                                video: "{\"hi\":\"hello\"}"
+                            }
+                        ],
+                        meta: { state: "init", timestamp: +new Date() }
+                    }
+                }
 
-//     //     const variableValues = {
-//     //       input: {
-//     //         pixels: [
-//     //           {
-//     //             event: "event1",
-//     //             typeEvent: "event",
-//     //             level: "info",
-//     //             payload: JSON.stringify({ payload: 'event1' }),
-//     //             namespace: "namespace",
-//     //           },
-//     //           {
-//     //             typeEvent: "tracking",
-//     //             event: "event2",
-//     //             level: "info",
-//     //             payload: JSON.stringify({ payload: 'event2' }),
-//     //           },
-//     //         ],
-//     //         meta: {
-//     //           state: "state",
-//     //           sessionId: "sessionId",
-//     //           timestamp,
-//     //         },
-//     //       },
-//     //     }
+                res = await execGraphql({ query, variableValues, user })
+            })
 
-//     //     res = await execGraphql({ query, variableValues, user })
-//     //   })
+            it(`should return error`, async () => {
+                expect(res).to.have.property('errors')
+            })
 
-//     //   it(`should return event1`, async () => {
-//     //     const attr = {
-//     //       event: "event1",
-//     //       typeEvent: "event",
-//     //       level: "info",
-//     //       payload: JSON.stringify({ payload: 'event1' }),
-//     //       state: "state",
-//     //       timestamp,
-//     //       sessionId: "sessionId",
-//     //       namespace: "namespace",
-//     //     }
+        })
 
-//     //     expect(res.data[action].pixels).to.containSubset([attr])
-//     //   })
+        describe('invalid meta property', async () => {
+            let res
 
-//     //   it(`should return event2`, async () => {
-//     //     const attr = {
-//     //       typeEvent: "tracking",
-//     //       event: "event2",
-//     //       level: "info",
-//     //       payload: JSON.stringify({ payload: 'event2' }),
-//     //       state: "state",
-//     //       timestamp,
-//     //       sessionId: "sessionId",
-//     //       namespace: user.namespace,
-//     //     }
+            before(async () => {
+                let user = await factory.create("user")
+                let variableValues = {
+                    input: {
+                        pixels: [
+                            {
+                                event: "nx:begin",
+                                level: "info",
+                                typeEvent: "tracking",
+                                timing: "{\"hello\":\"world\"}",
+                                payload: "{\"timing\":{\"name\":\"nx:begin\",\"entryType\":\"mark\",\"startTime\":4459.89999989979,\"duration\":0}}",
+                                video: "{\"hi\":\"hello\"}"
+                            }
+                        ],
+                        meta: { invalidProp: "invalidValue", state: "init", timestamp: +new Date() }
+                    }
+                }
 
-//     //     expect(res.data[action].pixels).to.containSubset([attr])
-//     //   })
-
-//     //   it(`should return total`, async () => {
-//     //     expect(res.data[action].total).to.eql("2")
-//     //   })
-//     // })
+                res = await execGraphql({ query, variableValues, user })
+            })
 
 
-//     // describe('user is root', () => {
-//     //   let user
-//     //   let company
-//     //   let campaign
-//     //   let recipient
-//     //   let res
-//     //   const timestamp = `${new Date().getTime()}`
+            it(`should return error`, async () => {
+                expect(res).to.have.property('errors')
+            })
 
-//     //   beforeEach(async () => {
-//     //     user = await factory.create("userRoot")
+        })
 
-//     //     const variableValues = {
-//     //       input: {
-//     //         pixels: [
-//     //           {
-//     //             event: "event1",
-//     //             typeEvent: "event",
-//     //             level: "info",
-//     //             payload: JSON.stringify({ payload: 'event1' }),
-//     //           },
-//     //         ],
-//     //         meta: {
-//     //           state: "state",
-//     //           sessionId: "sessionId",
-//     //           timestamp,
-//     //           namespace: "namespace",
-//     //         },
-//     //       },
-//     //     }
+        describe('invalid payload format', async () => {
+            let res
 
-//     //     res = await execGraphql({ query, variableValues, user })
-//     //   })
+            before(async () => {
+                let user = await factory.create("user")
+                let variableValues = {
+                    input: {
+                        pixels: [
+                            {
+                                event: "nx:begin",
+                                level: "info",
+                                typeEvent: "tracking",
+                                timing: "{\"hello\":\"world\"}",
+                                payload: "{timing:{name:nx:begin,entryType:mark,startTime:4459.89999989979,duration:0}}",
+                                video: "{\"hi\":\"hello\"}"
+                            }
+                        ],
+                        meta: { state: "init", timestamp: +new Date() }
+                    }
+                }
 
-//     //   it(`should return event1`, async () => {
-//     //     const attr = {
-//     //       event: "event1",
-//     //       typeEvent: "event",
-//     //       level: "info",
-//     //       payload: JSON.stringify({ payload: 'event1' }),
-//     //       state: "state",
-//     //       timestamp,
-//     //       sessionId: "sessionId",
-//     //       namespace: "namespace",
-//     //     }
+                res = await execGraphql({ query, variableValues, user })
+            })
 
-//     //     expect(res.data[action].pixels).to.containSubset([attr])
-//     //   })
 
-//     //   it(`should return total`, async () => {
-//     //     expect(res.data[action].total).to.eql("1")
-//     //   })
-//     // })
+            it(`should return error`, async () => {
+                expect(res.errors[0]).to.have.property('message').eql('payload, timing, and video value should be valid json as string')
+            })
+        })
 
-//     // describe('payload', () => {
-//     // describe('without payload', () => {
-//     //   let user
-//     //   let company
-//     //   let campaign
-//     //   let recipient
-//     //   let res
-//     //   const timestamp = `${new Date().getTime()}`
+        describe('invalid timing format', async () => {
+            let res
 
-//     //   beforeEach(async () => {
-//     //     user = await factory.create("userRoot")
+            before(async () => {
+                let user = await factory.create("user")
+                let variableValues = {
+                    input: {
+                        pixels: [
+                            {
+                                event: "nx:begin",
+                                level: "info",
+                                typeEvent: "tracking",
+                                timing: "{hello:world}",
+                                payload: "{\"timing\":{\"name\":\"nx:begin\",\"entryType\":\"mark\",\"startTime\":4459.89999989979,\"duration\":0}}",
+                                video: "{\"hi\":\"hello\"}"
+                            }
+                        ],
+                        meta: { state: "init", timestamp: +new Date() }
+                    }
+                }
 
-//     //     const variableValues = {
-//     //       input: {
-//     //         pixels: [
-//     //           {
-//     //             event: "event1",
-//     //             typeEvent: "event",
-//     //             level: "info",
-//     //           },
-//     //         ],
-//     //         meta: {
-//     //           state: "state",
-//     //           sessionId: "sessionId",
-//     //           timestamp,
-//     //           namespace: "namespace",
-//     //         },
-//     //       },
-//     //     }
+                res = await execGraphql({ query, variableValues, user })
+            })
 
-//     //     res = await execGraphql({ query, variableValues, user })
-//     //   })
+            it(`should return error`, async () => {
+                expect(res.errors[0]).to.have.property('message').eql('payload, timing, and video value should be valid json as string')
+            })
+        })
 
-//     //   it(`should return event1`, async () => {
-//     //     const attr = {
-//     //       event: "event1",
-//     //       typeEvent: "event",
-//     //       level: "info",
-//     //       state: "state",
-//     //       timestamp,
-//     //       sessionId: "sessionId",
-//     //       namespace: "namespace",
-//     //     }
+        describe('invalid video format', async () => {
+            let res
 
-//     //     expect(res.data[action].pixels).to.containSubset([attr])
-//     //   })
+            before(async () => {
+                let user = await factory.create("user")
+                let variableValues = {
+                    input: {
+                        pixels: [
+                            {
+                                event: "nx:begin",
+                                level: "info",
+                                typeEvent: "tracking",
+                                timing: "{\"hello\":\"world\"}",
+                                payload: "{\"timing\":{\"name\":\"nx:begin\",\"entryType\":\"mark\",\"startTime\":4459.89999989979,\"duration\":0}}",
+                                video: "{hi:hello}"
+                            }
+                        ],
+                        meta: { state: "init", timestamp: +new Date() }
+                    }
+                }
 
-//     //   it(`should return total`, async () => {
-//     //     expect(res.data[action].total).to.eql("1")
-//     //   })
-//     // })
+                res = await execGraphql({ query, variableValues, user })
+            })
 
-//     // describe('invalid payload', () => {
-//     //   let user
-//     //   let company
-//     //   let campaign
-//     //   let recipient
-//     //   let res
-//     //   const timestamp = `${new Date().getTime()}`
-
-//     //   beforeEach(async () => {
-//     //     user = await factory.create("user")
-
-//     //     const variableValues = {
-//     //       input: {
-//     //         pixels: [
-//     //           {
-//     //             event: "event1",
-//     //             typeEvent: "event",
-//     //             level: "info",
-//     //             payload: "{123445}",
-//     //           },
-//     //         ],
-//     //         meta: {
-//     //           state: "state",
-//     //           sessionId: "sessionId",
-//     //           timestamp,
-//     //           namespace: "namespace",
-//     //         },
-//     //       },
-//     //     }
-
-//     //     res = await execGraphql({ query, variableValues, user })
-//     //   })
-
-//     //   it(`should have error`, async () => {
-//     //     expect(res.errors[0]).to.have.property("message").eql("payload should be valid json as string")
-//     //   })
-//     // })
-//     // })
-
-//   })
-
-//   describe('empty params given', () => {
-//     let res
-//     let user
-
-//     beforeEach(async () => {
-//       user = await factory.create("user")
-
-//       const variableValues = {
-//         input: {
-//         }
-//       }
-
-//       res = await execGraphql({ query, variableValues, user })
-//     })
-
-//     it("should return empty data", async () => {
-//       expect(res.data[action].pixels).to.eql([])
-//     })
-
-//     it("should return total as null", async () => {
-//       expect(res.data[action].total).to.eql(null)
-//     })
-//   })
-
-//   describe("user unauthorized", () => {
-//     let res
-//     let user
-//     let company
-
-//     beforeEach(async () => {
-//       user = await factory.create("userAdmin")
-
-//       const variableValues = {}
-
-//       res = await execGraphql({ query, variableValues, unauth: true })
-//     })
-
-//     it("should return error", async () => {
-//       expect(res).to.have.property('errors')
-//     })
-//   })
-
-// })
+            it(`should return error`, async () => {
+                expect(res.errors[0]).to.have.property('message').eql('payload, timing, and video value should be valid json as string')
+            })
+        })
+    })
+})

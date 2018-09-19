@@ -14,7 +14,7 @@
     "build:dev": "node_modules/.bin/tsc",
     "build:stage": "node_modules/.bin/tsc",
     "build:prod": "NODE_ENV=production node_modules/.bin/tsc && npm run copy:dist:graphql",
-    "dev": "npm config set strict-ssl false; node_modules/.bin/nodemon --inspect=0.0.0.0:5858 --exec ts-node -r tsconfig-paths/register src/app.init.ts | ./node_modules/.bin/bunyan -o short -l trace",
+    "dev": "npm config set strict-ssl false; node_modules/.bin/nodemon --watch ./src --inspect=0.0.0.0:5858 --exec ts-node -r tsconfig-paths/register src/app.init.ts | ./node_modules/.bin/bunyan -o short -l trace",
     "dev:debug": "node_modules/.bin/nodemon --inspect=0.0.0.0:5858 --exec ts-node -r tsconfig-paths/register src/app.init.ts; echo 'http://0.0.0.0:5858/json/list for debug list'",
     "tests": "NODE_ENV=test node_modules/.bin/_mocha --opts .mocha --exit -r ts-node/register -r tsconfig-paths/register test/support/config.ts $(find test -name '*.test.ts')",
     "test": "NODE_ENV=test node_modules/.bin/nodemon --watch ./ --exec mocha --timeout 9999999 -r ts-node/register -r tsconfig-paths/register test/support/config.ts $(find test -name '*.test.ts' ! -path '_*.test.ts')",

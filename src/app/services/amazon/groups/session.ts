@@ -43,7 +43,6 @@ const getNextToken = async (groupName) => {
         }
     })
 
-    console.log('nextoken: ', nextToken)
     return { nextToken, logStreamName }
 }
 
@@ -52,9 +51,7 @@ export const getSessionEvents = async (options: { logStreamName, logGroupName, e
     const { logStreamName, endTime, limit, nextToken, startFromHead, startTime } = options
 
     let params = { logStreamName, logGroupName: GROUP_NAME, limit, startFromHead, startTime, endTime, nextToken }
-    console.log(params)
     const lists = await log.getLogEvents(params).promise()
-    console.log(lists.nextBackwardToken, lists.nextForwardToken)
     return Promise.resolve(lists)
 }
 

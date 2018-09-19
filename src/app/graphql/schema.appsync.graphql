@@ -27,8 +27,10 @@
 
     createUser(input: CreateUserInput!): UserWithMeta
 
+    deleteSessions(input: DeleteSessionsInput!): Message
+
     createPixels(input: CreatePixelsInput!): PixelsWithMeta
-    createPixelsJob(input: CreatePixelsInput!): Message
+    createPixelsJob(input: CreatePixelsInput!): PixelsWithMeta
   }
 
   type Subscription {
@@ -145,6 +147,10 @@
     offset: String
   }
 
+  input DeleteSessionsInput {
+    logStreamNames: [String]
+  }
+
   input CreatePixelsInput {
     lastKey: String
     logStreamName: String
@@ -201,7 +207,6 @@
   type Message {
     value: String!
     lastKey: String
-    logStreamName: String
     namespace: String
   }
 
@@ -315,6 +320,7 @@
   }
 
   type PixelsWithMeta {
+    logStreamName: String
     pixels: [Pixel]
     namespace: String
     total: String

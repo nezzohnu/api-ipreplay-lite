@@ -1,8 +1,8 @@
-import { path, merge, flatten } from "ramda"
+import { path, merge, flatten, filter } from "ramda"
 import { Pixel } from "app/models"
 import { authenticated, authenticatedPublic } from "app/services/graphql"
 import { can, cannot } from "app/policy"
-import { awsLogs, getLogStreamNameById, getLogEvents } from 'app/services/amazon/cwlog'
+import { awsLogs, getLogStreamNameById, getLogEvents, deleteLogStreams } from 'app/services/amazon/cwlog'
 import * as AWS from 'aws-sdk'
 import { GROUP_NAME } from 'app/services/amazon/groups/pixels'
 import logger from "app/services/logger"
@@ -31,6 +31,23 @@ export const pixels = authenticated(async (root: any, args: any, ctx: any) => {
   }
 
   return response
+})
+
+export const deleteSessions = authenticated(async (root: any, args: any, ctx: any) => {
+
+  const { user } = ctx
+
+  const { logStreamNames } = args.input
+
+  let response: any = await deleteLogStreams({ logStreamNames, logGroupName: GROUP_NAME })
+
+  const errors = x => x !== 'ok'
+
+  response = filter(errors, response)
+
+  response = response.length ? JSON.stringify(response) : 'ok'
+
+  return { value: response, lastKey: null, namespace: user.namespace }
 })
 
 export const sessions = authenticated(async (root: any, args: any, ctx: any) => {
@@ -127,6 +144,7 @@ export const createPixels = authenticatedPublic(async (root: any, args: any, ctx
 })
 
 export const createPixelsJob = authenticatedPublic(async (root: any, args: any, ctx: any) => {
+
   const { user } = ctx
   try {
     if (await isLimitCountPixelsBySessionId(args)) {
@@ -140,15 +158,33 @@ export const createPixelsJob = authenticatedPublic(async (root: any, args: any, 
       sessionId = uuid()
     }
 
-    const body = buildBody(args, user)
+    let pixels = buildBody(args, user)
 
-    const data = await awsLogs.pixels.addPixel(body, {
+    const data = await awsLogs.pixels.addPixel(pixels, {
       logStreamName: args.input.logStreamName,
       lastKey: args.input.lastKey,
       id: sessionId
     })
+
+    pixels = pixels.map((pixel) => {
+
+      try {
+
+        if (pixel.payload) pixel.payload = JSON.stringify(pixel.payload)
+
+      } catch (err) {
+
+        throw new Error("payload should be valid json as string")
+
+      }
+
+      return pixel
+
+    })
+
     let response = {
-      value: "pixels send in a background job",
+      pixels: pixels,
+      total: pixels.length,
       logStreamName: data.logStreamName,
       lastKey: data.lastKey,
       namespace: user.namespace,
@@ -248,7 +284,7 @@ const buildBody = (args, user) => {
       if (element.payload) element.payload = JSON.parse(element.payload)
     } catch (err) {
 
-      throw new Error("payload and timing should be valid json as string")
+      throw new Error("payload, timing, and video value should be valid json as string")
     }
     return element
   }
@@ -318,8 +354,6 @@ const buildPixelsList = (pixels) => {
     const msg = JSON.parse(item.message)
 
     msg.payload = JSON.stringify(msg.payload)
-
-    if (msg.timing) { msg.timing = JSON.stringify(msg.timing) }
 
     return {
       ...msg,

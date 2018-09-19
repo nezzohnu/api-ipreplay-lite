@@ -11,11 +11,11 @@ export const createToken = async (root: any, args: any, ctx: any) => {
   const user = await User.findOne({ email })
 
   if (!user) {
-    throw new Error("user not found")
+    throw new Error("invalid user or password")
   }
 
   if (!await user.comparePassword(password)) {
-    throw new Error("wrong password")
+    throw new Error("invalid user or password")
   }
 
   const jwt = await createJwt(user)

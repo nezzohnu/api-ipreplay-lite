@@ -31,6 +31,7 @@
 
   run tests
   - docker-compose run app npm run tests
+  - docker exec ipreplay_development_1 npm run test
 
   app http://localhost:8080
   swagger http://localhost:8081

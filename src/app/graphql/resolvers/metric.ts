@@ -2,7 +2,7 @@ import { authenticated } from "app/services/graphql"
 import measurements from './measurements'
 import { GROUP_NAME } from '../../services/amazon/groups/pixels'
 import logger from "app/services/logger"
-import { pluck, path, keys, contains, filter, flatten } from 'ramda'
+import { keys, contains } from 'ramda'
 
 const buildOptions = (input) => {
     const list = ["limit", "type", "byVideoId", "lastKey", "startTime", "endTime", "nextToken"]
@@ -66,7 +66,6 @@ export const metricsSession = authenticated(async (root: any, args: any, ctx: an
 
 const metrics = async (root: any, args: any, ctx: any, info: any, metric: string) => {
     try {
-
         const options = buildOptions(args.input)
 
         let result = (await measurements[metric](options))
@@ -81,23 +80,4 @@ const metrics = async (root: any, args: any, ctx: any, info: any, metric: string
     } catch (err) {
         logger.info('ERROR', err)
     }
-}
-
-
-
-const outputTypes = (info) => {
-
-    const validKeys = keys(measurements)
-
-    const getKeys = (x) => contains(x, validKeys)
-
-    let selections = path(['selectionSet', 'selections'], info.fieldNodes[0])
-
-    if (!selections) return []
-
-    selections = pluck('name', selections)
-    selections = pluck('value', selections)
-
-    return filter(getKeys, selections)
-
 }

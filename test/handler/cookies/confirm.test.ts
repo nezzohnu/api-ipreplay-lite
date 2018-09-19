@@ -1,6 +1,5 @@
 import "../../support/hooks"
 import { graphqlHandler } from "../../../src/lambda-services/handler"
-import { History } from "app/models"
 import * as sinon from "sinon"
 
 describe(__filename, () => {

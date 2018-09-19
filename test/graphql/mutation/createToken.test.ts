@@ -1,74 +1,89 @@
 import "../../support/hooks"
 
-const password = "password"
+declare const expect, it, describe, beforeEach, factory, matchers, execGraphql
+
+const action = "createToken"
 const query = `
-  mutation createToken($input: CreateTokenInput!) {
+mutation createToken($input: CreateTokenInput!) {
     createToken(input: $input) {
+      publicKey
       token
       namespace
     }
   }
 `
-
 describe(__filename, () => {
+  describe('login', () => {
 
-  describe(`valid params given`, async () => {
-    let user
-    let res
+    describe('login success', async () => {
+      let res
+      let user
 
-    beforeEach(async () => {
-      user = await factory.create('user', { password })
+      beforeEach(async () => {
+        user = await factory.create("user", { password: "T35tpassword!" })
 
-      const variableValues = {
-        input: {
-          email: user.email,
-          password: password,
+        const variableValues = {
+          input: {
+            email: user.email,
+            password: "T35tpassword!",
+          }
         }
-      }
+        res = await execGraphql({ query, variableValues })
+      })
 
-      res = await execGraphql({ query, variableValues, unauth: true })
+      it(`should return token`, async () => {
+        expect(res.data[action]).to.have.property('token')
+      })
+
+      it(`should return namespace`, async () => {
+        expect(res.data[action]).to.have.property('namespace').eql('urn:ipreplay:' + user.id)
+      })
+
+      it(`should return publickey`, async () => {
+        expect(res.data[action]).to.have.property('publicKey')
+      })
     })
 
-    it(`should return token`, async () => {
-      expect(res.data.createToken).to.have.property("token")
+    describe('login failure: invalid password', async () => {
+      let res
+      let user
+
+      beforeEach(async () => {
+        user = await factory.create("user", { password: "T35tpassword!" })
+
+        const variableValues = {
+          input: {
+            email: user.email,
+            password: "T35tpassword",
+          }
+        }
+        res = await execGraphql({ query, variableValues })
+      })
+
+      it(`should return error`, async () => {
+        expect(res.errors[0]).to.have.property('message').eql("invalid user or password")
+      })
     })
 
-    it(`should return namespace`, async () => {
-      expect(res.data.createToken).to.have.property("namespace")
+    describe('login failure: invalid user', async () => {
+      let res
+      let user
+
+      beforeEach(async () => {
+        user = await factory.create("user", { password: "T35tpassword!" })
+
+        const variableValues = {
+          input: {
+            email: "trst@gmal.com",
+            password: "T35tpassword!",
+          }
+        }
+        res = await execGraphql({ query, variableValues })
+      })
+
+      it(`should return error`, async () => {
+        expect(res.errors[0]).to.have.property('message').eql("invalid user or password")
+      })
     })
   })
-
-  describe(`empty params given`, async () => {
-    it("should return error", async () => {
-      const variableValues = {
-        input: {
-          email: "test@test.com",
-          password: "test",
-        }
-      }
-
-      const res = await execGraphql({ query, variableValues, unauth: true })
-
-      expect(res.errors[0]).to.have.property('message').eql("user not found")
-    })
-  })
-
-  describe(`wrong password`, async () => {
-    it("should return error", async () => {
-      let password = "SFXQlXYh5vbISyb"
-      let user = await factory.create('user', { password })
-
-      const variableValues = {
-        input: {
-          email: user.email,
-          password: "wrong password",
-        }
-      }
-
-      const res = await execGraphql({ query, variableValues, unauth: true })
-
-      expect(res.errors[0]).to.have.property('message').eql("wrong password")
-    })
-  })
-
 })

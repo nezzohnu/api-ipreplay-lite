@@ -102,4 +102,30 @@ export const getLogEvents = async (options: { logStreamName, logGroupName, endTi
     return Promise.resolve(lists)
 }
 
-// validateLogGroups()
+export const deleteLogStream = async (options: { logStreamName, logGroupName }) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let result = await log.deleteLogStream(options).promise()
+            if (result.$response.error) {
+                throw result.$response.error
+            }
+            resolve('ok')
+        } catch (err) {
+            resolve({ error: err.message, ...options })
+        }
+    })
+}
+
+export const deleteLogStreams = async (options: { logStreamNames, logGroupName }) => {
+
+    const { logStreamNames, logGroupName } = options
+
+    const promises = logStreamNames.map(logStreamName => {
+        return deleteLogStream({ logStreamName, logGroupName })
+    })
+
+    let results = await Promise.all(promises)
+
+    return Promise.resolve(results)
+}
+

@@ -1,9 +1,11 @@
+// RENAME FILES find . -name "*.test.ts" -exec rename 's|\.test\.ts|\._back\.ts|' {} +
+
 import { getEnvVars } from "../serverless_config.js"
 
 describe(__filename, () => {
 
   const params = {
-    service: 'aws_serverless_service',
+    service: 'videometrics-api',
     accountId: '123',
     provider: {
       region: 'us-west-2',
@@ -32,16 +34,12 @@ describe(__filename, () => {
       JWT_SECRET: '12345',
       COOKIE_NAME: 'ipreplay',
       COOKIE_DOMAIN: 'http://localhost:8080',
-      EMAIL_FROM: 'test@test.com',
-      URI_FRONTEND: 'https://staging.dash.nezzoh.com',
-      UNSUBSCRIBE_URI_FRONTEND: 'https://staging.dash.nezzoh.com/unsubscribe',
-      AWS_SERVERLESS_SERVICE: 'aws_serverless_service',
+      AWS_SERVERLESS_SERVICE: 'videometrics-api',
       USE_AMAZON_SERVERLESS: 'false',
       USE_DYNAMO_REMOTE: 'true',
-      AWS_ACCESS_KEY_ID: "",
-      AWS_SECRET_ACCESS_KEY: "",
-      AWS_REGION: ""
-
+      AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+      AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+      AWS_REGION: process.env.AWS_REGION,
     },
   }
 

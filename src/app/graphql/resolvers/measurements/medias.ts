@@ -29,6 +29,5 @@ export default async (options) => {
             id: metrics.filter.id
         })
     })
-    debugger
     return payload
 }

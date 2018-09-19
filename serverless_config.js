@@ -52,10 +52,6 @@ module.exports.getEnvVars = () => ({
     COOKIE_NAME: process.env.COOKIE_NAME,
     COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
 
-    EMAIL_FROM: process.env.EMAIL_FROM,
-    URI_FRONTEND: process.env.URI_FRONTEND,
-    UNSUBSCRIBE_URI_FRONTEND: process.env.UNSUBSCRIBE_URI_FRONTEND,
-
     AWS_SERVERLESS_SERVICE: process.env.AWS_SERVERLESS_SERVICE || "ipreplay-service",
     // NOTE for remove init dotenv from config/settings
     USE_AMAZON_SERVERLESS: process.env.USE_AMAZON_SERVERLESS || "false",

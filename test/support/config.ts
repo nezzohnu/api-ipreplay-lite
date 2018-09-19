@@ -14,3 +14,11 @@ global.timekeeper = timekeeper
 global.execGraphql = execGraphql
 global.matchers = matchers
 global.factory = factory
+global.delay = (ms) => {
+    return new Promise((resolve) => {
+        var timer = setTimeout(() => {
+            clearTimeout(timer)
+            resolve(true)
+        }, ms || 500)
+    })
+}
